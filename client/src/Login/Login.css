@@ -1,0 +1,22 @@
+/* login.css */
+
+/* Default styles for mobile devices or small screens */
+.login-paper {
+    width: 90%;
+    padding: 15px;
+    text-align: center;
+  }
+
+  img {
+    pointer-events: none;
+  }
+  
+  /* Media query for laptop mode */
+  @media (min-width: 1024px) {
+    .login-paper {
+      width: 40%;
+    }
+  }
+
+  
+  
