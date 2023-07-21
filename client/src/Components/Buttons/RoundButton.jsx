@@ -1,29 +1,54 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import './RoundButton.css';
 
 const RoundButton = ({ label, onClick, width, ...rest }) => {
+  const [ripple, setRipple] = useState(false);
+  const buttonRef = useRef(null);
+
+  const handleClick = (e) => {
+    const rect = buttonRef.current.getBoundingClientRect();
+    const xPos = e.clientX - rect.left;
+    const yPos = e.clientY - rect.top;
+
+    setRipple({ x: xPos, y: yPos });
+    onClick && onClick();
+  };
+
+  const handleAnimationEnd = () => {
+    setRipple(false);
+  };
+
+  // Add touch event handlers to prevent default touch actions
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e) => {
+    e.preventDefault();
+    handleClick(e);
+  };
+
   return (
     <button
       type="button"
-      onClick={onClick}
-      style={{
-        width: width || '150px', // Set the width to the prop value or use a default value (150px)
-        height: '40px',
-        borderRadius: '20px', // Set the corner radius here
-        padding: '8px 12px', // Add padding for better appearance
-        border: 'none', // Remove the default button border
-        outline: 'none', // Remove the default focus outline
-        backgroundColor: '#000000', // Set the background color of the button
-        color: '#fff', // Set the text color of the button
-        fontSize: '14px',
-        fontFamily: 'Roboto, sans-serif',
-        fontWeight: 700,
-        cursor: 'pointer',
-        // Add any other custom styles you want to apply
-        // ...rest, // Optionally, pass additional props
-      }}
-      {...rest}
+      onClick={handleClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      ref={buttonRef}
+      className="round-button"
+      
     >
       {label}
+      {ripple && (
+        <div
+          className="ripple"
+          style={{
+            left: ripple.x + 'px',
+            top: ripple.y + 'px',
+          }}
+          onAnimationEnd={handleAnimationEnd}
+        />
+      )}
     </button>
   );
 };

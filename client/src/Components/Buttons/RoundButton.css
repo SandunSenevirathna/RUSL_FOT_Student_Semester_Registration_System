@@ -1,0 +1,44 @@
+/* RoundButton.css */
+
+.round-button {
+    width: 150px;
+    height: 40px;
+    border-radius: 20px;
+    padding: 8px 12px;
+    border: none;
+    outline: none;
+    background-color: #000000;
+    color: #fff;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    position: relative; /* Ensure the button has a non-static position */
+    overflow: hidden; /* Hide the ripple overflow */
+    outline: none; /* Remove the default focus outline */
+  }
+  
+ 
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.3); /* Adjust the ripple color and opacity */
+    transform: translate(-50%, -50%) scale(0); /* Initial scaling for the ripple */
+    animation: rippleAnimation 0.5s linear; /* Adjust the animation duration and timing function */
+  }
+
+  .round-button:focus {
+    /* Add custom focus styles here */
+    /* For example, you can add a box shadow or border to indicate focus */
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    border: 2px solid #000000;
+}
+  
+  @keyframes rippleAnimation {
+    to {
+      transform: translate(-50%, -50%) scale(3); /* Final scaling for the ripple */
+      opacity: 0; /* Fade out the ripple */
+    }
+  }
