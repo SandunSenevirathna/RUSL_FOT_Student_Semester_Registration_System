@@ -16,6 +16,10 @@ const Login = () => {
         };
       }, []);
 
+      const loginEvent =() =>{
+
+      }
+
 
   return (
     <Box
@@ -60,7 +64,7 @@ const Login = () => {
         </Box>
 
         <Box>
-            <RoundButton label="Login" onClick={""} width="200px" />
+            <RoundButton label="Login" onClick={loginEvent} width="200px" />
         </Box>
 
         <Box mt={2}>
