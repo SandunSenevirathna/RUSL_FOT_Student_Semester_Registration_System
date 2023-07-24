@@ -1,0 +1,25 @@
+/* LoginMain.css */
+
+/* Hide the left grid on mobile screens */
+@media (max-width: 600px) {
+    .left-grid {
+      display: none;
+    }
+  }
+  
+  /* Adjust paper height for mobile screens to show only the right grid */
+  @media (max-width: 600px) {
+    .login-paper {
+      height: 100%;
+    }
+  }
+  
+  /* Center the login form on mobile screens */
+  @media (max-width: 600px) {
+    .right-grid {
+      justify-content: center;
+    }
+  }
+  
+  /* Customize other responsive styles as needed */
+  
