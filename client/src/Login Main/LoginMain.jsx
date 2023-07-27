@@ -1,10 +1,14 @@
 import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Grid, Paper, Typography, Box } from '@mui/material';
 import RoundTextbox from '../Components/Textboxs/RoundTextbox';
 import RoundButton from '../Components/Buttons/RoundButton';
 import './LoginMain.css';
 
 const LoginMain = () => {
+  const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
+
+  
   useEffect(() => {
     // Add the style to disable scrolling on component mount
     document.documentElement.style.overflow = 'hidden';
@@ -14,8 +18,10 @@ const LoginMain = () => {
     };
   }, []);
 
-  const loginEvent = () => {};
 
+  const loginEvent = () => {
+    navigate('/Student_Part'); // Assuming "/login" is the route for the LoginMain component
+  };
   return (
     <Box
       height="100vh" // Take up the full height of the viewport
