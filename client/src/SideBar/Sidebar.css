@@ -1,0 +1,6 @@
+/* Add this CSS to your styles */
+@media (max-width: 768px) {
+  .main-blur {
+    filter: blur(4px); /* Adjust the blur amount as needed */
+  }
+}
