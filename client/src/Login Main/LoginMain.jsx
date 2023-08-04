@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef  } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Grid, Paper, Typography, Box } from '@mui/material';
 import RoundTextbox from '../Components/Textboxs/RoundTextbox';
@@ -6,7 +6,8 @@ import RoundButton from '../Components/Buttons/RoundButton';
 import './LoginMain.css';
 
 const LoginMain = () => {
-  const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
+  const navigate = useNavigate(); 
+  const emailRef = useRef(null);
 
   
   useEffect(() => {
@@ -18,9 +19,20 @@ const LoginMain = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Function to focus on the email input when the component is mounted
+    const focusEmailInput = () => {
+      if (emailRef.current) {
+        emailRef.current.focus();
+      }
+    };
+
+    // Call the function on component mount
+    focusEmailInput();
+  }, []);
 
   const loginEvent = () => {
-    navigate('/Student_Part'); // Assuming "/login" is the route for the LoginMain component
+    navigate('/Main_Menu'); // Assuming "/login" is the route for the LoginMain component
   };
   return (
     <Box
@@ -103,7 +115,7 @@ const LoginMain = () => {
 
               <Box mt={5}>
                 <Box marginBottom="10px">
-                  <RoundTextbox type="email" placeholder="Enter your email" />
+                  <RoundTextbox ref={emailRef} type="email" placeholder="Enter your email" />
                 </Box>
                 <Box marginBottom="20px">
                   <RoundTextbox type="password" placeholder="Enter your password" />

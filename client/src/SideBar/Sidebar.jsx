@@ -1,38 +1,97 @@
 import React, { useState } from 'react';
 import { Avatar, Box } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import CastForEducationOutlinedIcon from '@mui/icons-material/CastForEducationOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
+import TaskAltOutlinedIcon from '@mui/icons-material/TaskAltOutlined';
+import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
+import AddReactionRoundedIcon from '@mui/icons-material/AddReactionRounded';
+import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ children }) => {
   const [openSidebar, setOpenSidebar] = useState(true);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null); // Track the selected menu item
   const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
+  const [position, setPosition] = useState('1'); // Lecturer
+  //const [position, setPosition] = useState("Student") Student
 
-  const menuItems = [
-    { name: "Profile", link: "/", icon: AccountCircleOutlinedIcon },
-    { name: "Semester", link: "/", icon: CastForEducationOutlinedIcon },
-    { name: "Subject", link: "/", icon: ClassOutlinedIcon },
-    { name: "Notification", link: "/", icon: NotificationsNoneOutlinedIcon },
+  const menuItems_Student = [
+    { name: 'Profile', link: '/Main_Menu/Student_Profile', icon: AccountCircleOutlinedIcon },
+    { name: 'Semester', link: '/Main_Menu/Student_Semester', icon: CastForEducationOutlinedIcon },
+    { name: 'Subject', link: '/Main_Menu/Student_Subject', icon: ClassOutlinedIcon },
+    { name: 'Notification', link: '/Main_Menu/Student_Notification', icon: NotificationsNoneOutlinedIcon },
   ];
+
+  const menuItems_Lecturer = [
+    { name: 'Approve', link: '/Main_Menu/Approve', icon: TaskAltOutlinedIcon },
+    { name: 'Subject', link: '/Main_Menu/Subject', icon: ClassOutlinedIcon },
+    { name: 'Profile', link: '/Main_Menu/Profile', icon: AccountCircleOutlinedIcon },
+  ];
+
+  const menuItems_AR_Office = [
+    { name: 'Registration', link: '/Main_Menu/Approve', icon: AddReactionRoundedIcon },
+    { name: 'Setting', link: '/Main_Menu/Subject', icon: SettingsRoundedIcon },
+    { name: 'Setting', link: '/Main_Menu/Subject', icon: SettingsRoundedIcon },
+    { name: 'Profile', link: '/Main_Menu/Profile', icon: AccountCircleOutlinedIcon },
+  ];
+
+  const renderMenuItems = () => {
+    let menuItems;
+
+    if (position === '1') {
+      menuItems = menuItems_Student;
+    } else if (position === '2') {
+      menuItems = menuItems_Lecturer;
+    } else if (position === '3') {
+      menuItems = menuItems_AR_Office;
+    }
+
+    return menuItems.map((menu, i) => (
+      <NavLink
+        to={menu.link}
+        key={i}
+        className={`flex items-center text-sm gap-5 font-medium p-2 rounded-xl 
+          hover:bg-gray-500 ${selectedMenuItem === menu.name ? 'bg-gray-500' : ''}`}
+        onClick={() => handleMenuItemClick(menu.name)} // Update the selected menu item on click
+      >
+        <div className={`${!openSidebar && 'translate-x-[-3px]'}`}>
+          {React.createElement(menu.icon, { size: '20' })}
+        </div>
+        <h2
+          style={{
+            transitionDelay: `${i + 2}00ms`,
+          }}
+          className={`whitespace-pre duration-500 ${
+            !openSidebar ? 'opacity-0 translate-x-28 overflow-hidden' : ''
+          }`}
+        >
+          {menu.name}
+        </h2>
+      </NavLink>
+    ));
+  };
 
   const handleMenuItemClick = (name) => {
     setSelectedMenuItem(name); // Update the selected menu item
   };
 
   const logOutEvent = () => {
-    navigate('/login'); // Assuming "/login" is the route for the LoginMain component
+    navigate('/'); // Assuming "/login" is the route for the LoginMain component
   };
 
+
   return (
-    <div className={"min-w-[320px] "} >
+    <div className={"min-w-[320px]"} >
       <section className={`flex gap-9 ${openSidebar ? '' : 'sidebar-closed'}`}>
-        <div className={`bg-[#1C2537] min-h-screen ${openSidebar ? 'w-60' : 'w-16'} duration-500 text-white px-4 `}>
-          <div className={'py-3 flex justify-end'}>
+      <div
+        className={`bg-[#343541] min-h-screen ${openSidebar ? 'w-60' : 'w-16'} duration-500 text-white px-4`}
+        style={{ position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 1 }} // Apply fixed position to sidebar
+      >
+    <div className={'py-3 flex justify-end'}>
             <MenuIcon
               style={{ fontSize: 30 }}
               className={'cursor-pointer'}
@@ -57,7 +116,7 @@ const Sidebar = () => {
 
           <div className={'flex flex-col items-center'}>
             <h5
-              className={`whitespace-pre text-base font-medium duration-500 ${!openSidebar && "opacity-0 translate-x-28 overflow-hidden"}`}
+              className={`whitespace-pre text-base font-medium duration-200 ${!openSidebar && "opacity-0  overflow-hidden"}`}
             >
               Sandun Senevirathna
             </h5>
@@ -65,32 +124,14 @@ const Sidebar = () => {
 
           <div className={'py-0 flex flex-col items-center'}>
             <h5
-              className={`whitespace-pre text-sm duration-500 ${!openSidebar && "opacity-0 translate-x-28 overflow-hidden"}`}
+              className={`whitespace-pre text-sm duration-200 ${!openSidebar && "opacity-0 overflow-hidden"}`}
             >
               ITT-1819-079
             </h5>
           </div>
 
           <div className={`space-y-3 duration-500  py-20 ${!openSidebar && ' pt-36 translate-y-[-50px]'}`}>
-            {menuItems?.map((menu, i) => (
-              <Link
-                to={menu?.link}
-                key={i}
-                className={`flex items-center text-sm gap-5 font-medium p-2 rounded-xl 
-                            hover:bg-gray-700 ${selectedMenuItem === menu.name ? 'bg-gray-700' : ''}`}
-                onClick={() => handleMenuItemClick(menu.name)}
-              >
-                <div className={`${!openSidebar && 'translate-x-[-3px]'}`} >{React.createElement(menu?.icon, {size: "20"})}</div>
-                <h2
-                  style={{
-                    transitionDelay: `${i + 2}00ms`,
-                  }}
-                  className={`whitespace-pre duration-500 ${!openSidebar && "opacity-0 translate-x-28 overflow-hidden"}`}
-                >
-                  {menu?.name}
-                </h2>
-              </Link>
-            ))}
+            {renderMenuItems()}
           </div>
 
           <div className={'pt-15  whitespace-pre flex flex-col items-center'}>
@@ -103,10 +144,19 @@ const Sidebar = () => {
               </button>
           </div>
         </div>
-        <div className={'m-3 text-xl text-gray-900 font-semibold'}>
-          Student Home
-        </div>
-      </section>
+        <main
+          className={`flex-grow overflow-y-auto pr-3 ${
+            openSidebar ? 'main-blur' : ''
+          }`}
+          style={{
+            marginLeft: openSidebar ? '240px' : '64px',
+            transition: 'margin-left 0.3s ease',
+          }}
+        >
+          {children}
+        </main>
+        
+        </section>
     </div>
   );
 };
