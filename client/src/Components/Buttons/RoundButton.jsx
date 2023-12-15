@@ -36,7 +36,7 @@ const RoundButton = ({ label, onClick, width, ...rest }) => {
       onTouchEnd={handleTouchEnd}
       ref={buttonRef}
       className="round-button"
-      
+
     >
       {label}
       {ripple && (

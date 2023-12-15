@@ -1,0 +1,29 @@
+.button-container {
+    width: 50%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.1s ease;
+    outline: none;
+    opacity: 0;
+    transition: opacity 0.5s ease; 
+}
+
+
+.button-container.loaded {
+    opacity: 1;
+}
+
+
+.button-container.pressed {
+    transform: scale(0.9);
+}
+
+.button-text {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+}

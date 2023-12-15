@@ -1,23 +1,22 @@
 import React from 'react';
 
-const RoundTextbox = ({ type, placeholder, width, ...rest }) => {
+const RoundTextbox = ({ type, placeholder, width, height, inputRef, ...rest }) => {
   return (
     <input
-      type={type || 'text'} // Set the input type to the prop value or use 'text' as default
+      type={type || 'text'}
       placeholder={placeholder}
       style={{
-        width:  '250px', // Set the width to the prop value or use a default value (200px)
-        height:'30px',
-        borderRadius: '30px', // Set the corner radius here
-        padding: '8px 22px', // Add padding for better appearance
-        border: '1px solid #ccc', // Add border to the textbox
-        outline: 'none', // Remove the default focus outline
+        width: width || '250px',
+        height: height || '50px',
+        borderRadius: '30px',
+        padding: '8px 22px',
+        border: '1px solid #ccc',
+        outline: 'none',
         fontSize: '18px',
         fontFamily: 'Roboto, sans-serif',
         fontWeight: 400,
-        // Add any other custom styles you want to apply
-        // ...rest, // Optionally, pass additional props
       }}
+      ref={inputRef} // Use ref instead of inputRef
       {...rest}
     />
   );

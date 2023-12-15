@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Avatar, Box } from '@mui/material';
+import { Avatar } from '@mui/material';
 import { NavLink, useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
@@ -16,25 +16,24 @@ const Sidebar = ({ children }) => {
   const [openSidebar, setOpenSidebar] = useState(true);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null); // Track the selected menu item
   const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
-  const [position, setPosition] = useState('1'); // Lecturer
+  const [position, setPosition] = useState('3'); // Lecturer
   //const [position, setPosition] = useState("Student") Student
 
-  const menuItems_Student = [
+  const menuItems_Student = [ //1
     { name: 'Profile', link: '/Main_Menu/Student_Profile', icon: AccountCircleOutlinedIcon },
     { name: 'Semester', link: '/Main_Menu/Student_Semester', icon: CastForEducationOutlinedIcon },
     { name: 'Subject', link: '/Main_Menu/Student_Subject', icon: ClassOutlinedIcon },
     { name: 'Notification', link: '/Main_Menu/Student_Notification', icon: NotificationsNoneOutlinedIcon },
   ];
 
-  const menuItems_Lecturer = [
+  const menuItems_Lecturer = [//2
     { name: 'Approve', link: '/Main_Menu/Approve', icon: TaskAltOutlinedIcon },
     { name: 'Subject', link: '/Main_Menu/Subject', icon: ClassOutlinedIcon },
     { name: 'Profile', link: '/Main_Menu/Profile', icon: AccountCircleOutlinedIcon },
   ];
 
-  const menuItems_AR_Office = [
-    { name: 'Registration', link: '/Main_Menu/Approve', icon: AddReactionRoundedIcon },
-    { name: 'Setting', link: '/Main_Menu/Subject', icon: SettingsRoundedIcon },
+  const menuItems_AR_Office = [//3
+    { name: 'Registration', link: '/Main_Menu/AROffice_Registration', icon: AddReactionRoundedIcon },
     { name: 'Setting', link: '/Main_Menu/Subject', icon: SettingsRoundedIcon },
     { name: 'Profile', link: '/Main_Menu/Profile', icon: AccountCircleOutlinedIcon },
   ];
@@ -56,7 +55,7 @@ const Sidebar = ({ children }) => {
         key={i}
         className={`flex items-center text-sm gap-5 font-medium p-2 rounded-xl 
           hover:bg-gray-500 ${selectedMenuItem === menu.name ? 'bg-gray-500' : ''}`}
-        onClick={() => handleMenuItemClick(menu.name)} // Update the selected menu item on click
+
       >
         <div className={`${!openSidebar && 'translate-x-[-3px]'}`}>
           {React.createElement(menu.icon, { size: '20' })}
@@ -65,9 +64,8 @@ const Sidebar = ({ children }) => {
           style={{
             transitionDelay: `${i + 2}00ms`,
           }}
-          className={`whitespace-pre duration-500 ${
-            !openSidebar ? 'opacity-0 translate-x-28 overflow-hidden' : ''
-          }`}
+          className={`whitespace-pre duration-500 ${!openSidebar ? 'opacity-0 translate-x-28 overflow-hidden' : ''
+            }`}
         >
           {menu.name}
         </h2>
@@ -75,9 +73,6 @@ const Sidebar = ({ children }) => {
     ));
   };
 
-  const handleMenuItemClick = (name) => {
-    setSelectedMenuItem(name); // Update the selected menu item
-  };
 
   const logOutEvent = () => {
     navigate('/'); // Assuming "/login" is the route for the LoginMain component
@@ -87,11 +82,11 @@ const Sidebar = ({ children }) => {
   return (
     <div className={"min-w-[320px]"} >
       <section className={`flex gap-9 ${openSidebar ? '' : 'sidebar-closed'}`}>
-      <div
-        className={`bg-[#343541] min-h-screen ${openSidebar ? 'w-60' : 'w-16'} duration-500 text-white px-4`}
-        style={{ position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 1 }} // Apply fixed position to sidebar
-      >
-    <div className={'py-3 flex justify-end'}>
+        <div
+          className={`bg-[#343541] min-h-screen ${openSidebar ? 'w-60' : 'w-16'} duration-500 text-white px-4`}
+          style={{ position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 1 }} // Apply fixed position to sidebar
+        >
+          <div className={'py-3 flex justify-end'}>
             <MenuIcon
               style={{ fontSize: 30 }}
               className={'cursor-pointer'}
@@ -107,11 +102,11 @@ const Sidebar = ({ children }) => {
               className={`transition-all ${!openSidebar ? 'w-0 h-0' : ''}`}
             />
           </div>
-          <div  className={` opacity-0 ${!openSidebar && 'translate-y-[-30px] translate-x-6 opacity-100' }`}>
-            <img 
-              style={{width: openSidebar ? 25 : 10, height: openSidebar ? 25 : 10 }}
-              src="https://img.icons8.com/emoji/48/green-circle-emoji.png" 
-              alt="green-circle-emoji"/>
+          <div className={` opacity-0 ${!openSidebar && 'translate-y-[-30px] translate-x-6 opacity-100'}`}>
+            <img
+              style={{ width: openSidebar ? 25 : 10, height: openSidebar ? 25 : 10 }}
+              src="https://img.icons8.com/emoji/48/green-circle-emoji.png"
+              alt="green-circle-emoji" />
           </div>
 
           <div className={'flex flex-col items-center'}>
@@ -135,19 +130,18 @@ const Sidebar = ({ children }) => {
           </div>
 
           <div className={'pt-15  whitespace-pre flex flex-col items-center'}>
-              <button 
+            <button
               className={` duration-500  bg-slate-50 text-base text-black px-5 py-2 rounded-full font-semibold  hover:bg-slate-500 cursor-pointer hover:text-white ${!openSidebar && " bg-transparent text-white"}`}
               onClick={logOutEvent}
-              >
-                <LoginRoundedIcon sx={{pr: '3px'}} />
-                { !openSidebar ? '' : 'Log Out'}
-              </button>
+            >
+              <LoginRoundedIcon sx={{ pr: '3px' }} />
+              {!openSidebar ? '' : 'Log Out'}
+            </button>
           </div>
         </div>
         <main
-          className={`flex-grow overflow-y-auto pr-3 ${
-            openSidebar ? 'main-blur' : ''
-          }`}
+          className={`flex-grow overflow-y-auto pr-3 ${openSidebar ? 'main-blur' : ''
+            }`}
           style={{
             marginLeft: openSidebar ? '240px' : '64px',
             transition: 'margin-left 0.3s ease',
@@ -155,8 +149,8 @@ const Sidebar = ({ children }) => {
         >
           {children}
         </main>
-        
-        </section>
+
+      </section>
     </div>
   );
 };
