@@ -1,19 +1,168 @@
-import { Box } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Select,
+  Chip,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 import CustomButton from "../../../../Components/Buttons/CutomButton/CustomButton";
 import RoundTextbox from "../../../../Components/Textboxs/RoundTextbox";
+import axios from "axios";
+import config from "../../../../ipAddress";
 
-const AddSubject = ({ onClose }) => {
+const AddSubject = ({ onClose, initialSubjectData, isNewSubject }) => {
+  const localIp = config.localIp;
+
   const [subjectCode, setSubjectCode] = useState("");
   const [subjectName, setSubjectName] = useState("");
   const [credit, setCredit] = useState("");
-  const [compulsoryDepartments, setCompulsoryDepartments] = useState("");
-  const [optionalDepartments, setOptionalDepartments] = useState("");
-  const [semester, setSemester] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedCompulsoryDepartments, setSelectedCompulsoryDepartments] =
+    useState([]);
+  const [selectedOptionalDepartments, setSelectedOptionalDepartments] =
+    useState([]);
 
-  const handleSubjectAdd = () => {
-    // Handle subject add logic here
-    // You can access the values using the state variables (subjectCode, subjectName, etc.)
+  const [departments, setDepartments] = useState([]);
+
+  const subjectCodeTextFieldRef = React.useRef(null);
+  const subjectNameTextFieldRef = React.useRef(null);
+  const subjectCreditTextFieldRef = React.useRef(null);
+  const CPTextFieldRef = React.useRef(null);
+  const OPTextFieldRef = React.useRef(null);
+  const semesterTextFieldRef = React.useRef(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `http://${localIp}:8085/api/departments/all`
+        );
+
+        const departmentsWithId = (response.data || []).map((department) => ({
+          departments_code: department.department_code,
+          departments_name: department.department_name,
+        }));
+
+        setDepartments(departmentsWithId);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+      }
+    };
+
+    fetchData();
+    subjectNameTextFieldRef.current?.focus();
+  }, [localIp]);
+
+  useEffect(() => {
+    if (isNewSubject) {
+      handleCleanTextBox();
+    } else {
+      setSubjectCode(initialSubjectData.subject_code || "");
+      setSubjectName(initialSubjectData.subject_name || "");
+      setCredit(initialSubjectData.credit || "");
+      setSelectedSemester(initialSubjectData.semester || "");
+
+      // Check if compulsory_departments is an array with a single element "---"
+      setSelectedCompulsoryDepartments(
+        Array.isArray(initialSubjectData.compulsory_departments) &&
+          initialSubjectData.compulsory_departments.length === 1 &&
+          initialSubjectData.compulsory_departments[0] === "---"
+          ? []
+          : initialSubjectData.compulsory_departments || []
+      );
+
+      // Check if optional_departments is an array with a single element "---"
+      setSelectedOptionalDepartments(
+        Array.isArray(initialSubjectData.optional_departments) &&
+          initialSubjectData.optional_departments.length === 1 &&
+          initialSubjectData.optional_departments[0] === "---"
+          ? []
+          : initialSubjectData.optional_departments || []
+      );
+    }
+  }, [initialSubjectData]);
+
+  const handleSelectCompulsoryDepartments = (selectedDepartments) => {
+    setSelectedCompulsoryDepartments(selectedDepartments);
+  };
+
+  const handleSelectOptionalDepartments = (selectedDepartments) => {
+    setSelectedOptionalDepartments(selectedDepartments);
+  };
+
+  const handleCleanTextBox = () => {
+    setSubjectCode("");
+    setSubjectName("");
+    setCredit("");
+    setSelectedSemester("");
+    setSelectedCompulsoryDepartments([]);
+    setSelectedOptionalDepartments([]);
+    subjectCodeTextFieldRef.current?.focus();
+  };
+
+  const handleSubjectUpsert = async () => {
+    try {
+      if (!subjectCode || !subjectName || !credit || !selectedSemester) {
+        alert("SubjectCode, SubjectName, Credit, and Semester are required.");
+        handleCleanTextBox();
+        return;
+      } else {
+        const data = {
+          subjectCode,
+          subjectName,
+          credit,
+          compulsoryDepartments: selectedCompulsoryDepartments,
+          optionalDepartments: selectedOptionalDepartments,
+          semester: selectedSemester,
+        };
+
+        // Make a POST request to the new upsert endpoint
+        const response = await axios.post(
+          `http://${localIp}:8085/api/subject/upsert`,
+          data
+        );
+
+        // Handle the response accordingly
+        if (response.status === 201) {
+          alert("Subject inserted successfully");
+          handleCleanTextBox();
+        } else if (response.status === 200) {
+          alert("Subject updated successfully");
+          handleCleanTextBox();
+        }
+      }
+      // Construct the data object to be sent to the backend
+
+      // Additional actions if needed
+    } catch (error) {
+      console.error("Error adding/updating subject:", error);
+      // Handle the error as needed
+    }
+  };
+
+  const handleSubjectDelete = async () => {
+    try {
+      // Validate subjectCode
+      if (!subjectCode) {
+        alert("SubjectCode is required for deletion.");
+        return;
+      }
+
+      // Make a DELETE request to your backend API
+      const response = await axios.delete(
+        `http://${localIp}:8085/api/subject/delete?subjectCode=${subjectCode}`
+      );
+
+      alert(subjectCode, " Subject deleted successfully");
+      handleCleanTextBox();
+      // You can perform additional actions after a successful deletion
+    } catch (error) {
+      console.error("Error deleting subject:", error);
+      // Handle the error as needed
+    }
   };
 
   return (
@@ -26,93 +175,177 @@ const AddSubject = ({ onClose }) => {
       flexDirection="column"
       alignItems="center"
       justifyContent="center"
-      
     >
       <div className="flex flex-col space-y-5">
         <RoundTextbox
           className={"text-center"}
           value={subjectCode}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Check if the value is empty or does not contain special characters
-            if (value === '' || /^[a-zA-Z0-9]+$/.test(value)) {
-              setSubjectCode(value);
-            }
-          }}
+          onChange={(e) => setSubjectCode(e.target.value)}
           height="40px"
           placeholder="Subject Code"
+          inputRef={subjectCodeTextFieldRef}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "ArrowDown") {
+              e.stopPropagation();
+              subjectNameTextFieldRef.current?.focus();
+            }
+          }}
         />
+
         <RoundTextbox
           className={"text-center"}
           value={subjectName}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Check if the value is empty or does not contain special characters
-            if (value === '' || /^[a-zA-Z]+$/.test(value)) {
-                setSubjectName(value);
-            }
-          }}
+          onChange={(e) => setSubjectName(e.target.value)}
           height="40px"
           placeholder="Subject Name"
+          inputRef={subjectNameTextFieldRef}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "ArrowDown") {
+              e.stopPropagation();
+              subjectCreditTextFieldRef.current?.focus();
+            }
+          }}
         />
+
         <RoundTextbox
           className={"text-center"}
           value={credit}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Check if the value is a valid integer before updating the state
-            if (/^\d*$/.test(value)) {
-              setCredit(value);
-            }
-          }}
+          onChange={(e) => setCredit(e.target.value)}
           height="40px"
           placeholder="Credit"
-          
-        />
-        <RoundTextbox
-          className={"text-center"}
-          value={compulsoryDepartments}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Check if the value is empty or does not contain special characters
-            if (value === '' || /^[a-zA-Z]+$/.test(value)) {
-                setCompulsoryDepartments(value);
+          inputRef={subjectCreditTextFieldRef}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "ArrowDown") {
+              e.stopPropagation();
+              CPTextFieldRef.current?.focus();
             }
           }}
-          height="40px"
-          placeholder="Compulsory Departments"
         />
-        <RoundTextbox
-          className={"text-center"}
-          value={optionalDepartments}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Check if the value is empty or does not contain special characters
-            if (value === '' || /^[a-zA-Z]+$/.test(value)) {
-                setOptionalDepartments(value);
+
+        <Select
+          multiple
+          displayEmpty
+          value={selectedCompulsoryDepartments}
+          inputRef={CPTextFieldRef}
+          onChange={(event) =>
+            handleSelectCompulsoryDepartments(event.target.value)
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "ArrowDown") {
+              e.stopPropagation();
+              OPTextFieldRef.current?.focus();
             }
           }}
-          height="40px"
-          placeholder="Optional Departments"
-        />
-        <RoundTextbox
-          className={"text-center"}
-          value={semester}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Check if the value is empty or is a valid numeric input with an optional decimal part
-            if (value === '' || /^\d+(\.\d*)?$/.test(value)) {
-              setSemester(value);
+          renderValue={(selected) => {
+            if (selected.length === 0) {
+              return (
+                <em style={{ color: "#A9A3AF" }}>Compulsory Departments</em>
+              ); // Adjust the color as needed
+            }
+
+            return (
+              <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} sx={{ m: 0.5 }} />
+                ))}
+              </Box>
+            );
+          }}
+          sx={{ borderRadius: "40px" }} // Adjust the value as needed
+        >
+          {/* Menu items for compulsory departments */}
+          <MenuItem disabled value="">
+            <em style={{ color: "red" }}>Compulsory Departments</em>
+          </MenuItem>
+          {departments &&
+            departments.map((department) => (
+              <MenuItem
+                key={department.departments_code}
+                value={department.departments_code}
+              >
+                {department.departments_code}
+              </MenuItem>
+            ))}
+        </Select>
+
+        <Select
+          multiple
+          displayEmpty
+          value={selectedOptionalDepartments}
+          inputRef={OPTextFieldRef}
+          onChange={(event) =>
+            handleSelectOptionalDepartments(event.target.value)
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "ArrowDown") {
+              e.stopPropagation();
+              semesterTextFieldRef.current?.focus();
             }
           }}
-          height="40px"
-          placeholder="Semester"
-        />
+          renderValue={(selected) => {
+            if (selected.length === 0) {
+              return <em style={{ color: "#A9A3AF" }}>Optional Departments</em>; // Adjust the color as needed
+            }
+
+            return (
+              <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} sx={{ m: 0.5 }} />
+                ))}
+              </Box>
+            );
+          }}
+          sx={{ borderRadius: "40px" }} // Adjust the value as needed
+        >
+          {/* Menu items for optional departments */}
+          <MenuItem disabled value="">
+            <em style={{ color: "red" }}>Optional Departments</em>
+          </MenuItem>
+          {departments &&
+            departments.map((department) => (
+              <MenuItem
+                key={department.departments_code}
+                value={department.departments_code}
+              >
+                {department.departments_code}
+              </MenuItem>
+            ))}
+        </Select>
+
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <InputLabel id="semester-label">Semester</InputLabel>
+          <Select
+            labelId="semester-label"
+            id="semester-select"
+            value={selectedSemester}
+            inputRef={semesterTextFieldRef}
+            onChange={(event) => setSelectedSemester(event.target.value)}
+            label="Semester"
+            sx={{ borderRadius: "40px", pl: 10 }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === "ArrowDown") {
+                e.stopPropagation();
+                handleSubjectUpsert();
+              }
+            }}
+          >
+            <MenuItem value="">
+              <em style={{ color: "#A9A3AF" }}>Semester</em>
+            </MenuItem>
+            {["1.1", "1.2", "2.1", "2.2", "3.1", "3.2", "4.1", "4.2"].map(
+              (semesterValue) => (
+                <MenuItem key={semesterValue} value={semesterValue}>
+                  {semesterValue}
+                </MenuItem>
+              )
+            )}
+          </Select>
+        </FormControl>
       </div>
 
       <div className="flex flex-row mt-5 space-x-3 ">
         <CustomButton
-          onClick={handleSubjectAdd}
+          onClick={handleSubjectUpsert}
           title="Add"
           backgroundColor="#333333"
           borderRadius={30}
@@ -121,7 +354,9 @@ const AddSubject = ({ onClose }) => {
         />
         {/* Add similar onClick handlers for the Delete and Clean buttons */}
         <CustomButton
-          onClick={() => {}}
+          onClick={() => {
+            handleSubjectDelete();
+          }}
           title="Delete"
           backgroundColor="#333333"
           borderRadius={30}
@@ -131,7 +366,9 @@ const AddSubject = ({ onClose }) => {
       </div>
       <div className="mt-3">
         <CustomButton
-          onClick={() => {}}
+          onClick={() => {
+            handleCleanTextBox();
+          }}
           title="Clean"
           backgroundColor="#333333"
           borderRadius={30}

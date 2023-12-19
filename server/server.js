@@ -33,7 +33,7 @@ server.listen(PORT, function check(error) {
 server.get("/api/batch/all", (req, res) => {
   // Fetch all batches from the batch table
   const query =
-    "SELECT `batch_name`, `enrollment_date` FROM `batch` WHERE `available`= 1";
+    "SELECT * FROM `batch`";
   db.query(query, (err, result) => {
     if (err) {
       console.error("Error fetching batches:", err);
@@ -75,27 +75,226 @@ server.post("/api/batch/insert", async (req, res) => {
   }
 });
 
-server.put("/api/batch/deleteBatch", async (req, res) => {
-  const { batch_name, available, deleted_date } = req.body;
+
+server.delete("/api/batch/deleteBatch", async (req, res) => {
+  const { batch_name } = req.query;
 
   try {
-    // Update the batch in the database
-    const updateQuery =
-      "UPDATE `batch` SET `available` = ?, `deleted_date` = ? WHERE `batch_name` = ?";
-    db.query(
-      updateQuery,
-      [available, deleted_date, batch_name],
-      (updateErr, updateResult) => {
-        if (updateErr) {
-          console.error("Error updating batch:", updateErr);
-          return res.status(500).send("Internal Server Error");
-        }
-        console.log(`Successfully updated batch: ${batch_name}`);
-        res.status(200).send("Batch deleted successfully");
+    // Delete the batch in the database
+    const deleteQuery = "DELETE FROM `batch` WHERE `batch_name` = ?";
+    db.query(deleteQuery, [batch_name], (deleteErr, deleteResult) => {
+      if (deleteErr) {
+        console.error("Error deleting batch:", deleteErr);
+        return res.status(500).send("Internal Server Error");
       }
-    );
+      console.log(`Successfully deleted batch: ${batch_name}`);
+      res.status(200).send("Batch deleted successfully");
+    });
   } catch (error) {
     console.error("Error deleting batch:", error);
     res.status(500).send("Internal Server Error");
   }
 });
+
+
+//------------------- department -----------------------------------
+
+server.get("/api/departments/all", (req, res) => {
+  // Fetch all batches from the batch table
+  const query =
+    "SELECT * FROM `department`";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("Error fetching department:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    console.log("department fetched successfully");
+    res.status(200).json(result);
+  });
+});
+
+server.post("/api/departments/upsert", async (req, res) => {
+  const { department_code, department_name } = req.body;
+
+  try {
+    // Check if the department with the given department_code already exists
+    const checkQuery = "SELECT * FROM `department` WHERE `department_code` = ?";
+    db.query(checkQuery, [department_code], (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error("Error checking department existence:", checkErr);
+        return res.status(500).send("Internal Server Error");
+      }
+
+      if (checkResult.length > 0) {
+        // If the department exists, perform an update
+        const updateQuery =
+          "UPDATE `department` SET `department_name` = ? WHERE `department_code` = ?";
+        db.query(updateQuery, [department_name, department_code], (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error("Error updating department:", updateErr);
+            return res.status(500).send("Internal Server Error");
+          }
+          console.log(`Successfully updated department: ${department_name}`);
+          res.status(200).send("Department updated successfully");
+        });
+      } else {
+        // If the department does not exist, perform an insert
+        const insertQuery =
+          "INSERT INTO `department`(`department_code`, `department_name`) VALUES (?, ?)";
+        db.query(insertQuery, [department_code, department_name], (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error("Error inserting department:", insertErr);
+            return res.status(500).send("Internal Server Error");
+          }
+          console.log(`Successfully inserted department: ${department_name}`);
+          res.status(200).send("Department inserted successfully");
+        });
+      }
+    });
+  } catch (error) {
+    console.error("Error upserting department:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+server.delete("/api/departments/delete", async (req, res) => {
+  const { department_code } = req.query;
+
+  try {
+    // Delete the department in the database
+    const deleteQuery = "DELETE FROM `department` WHERE `department_code` = ?";
+    db.query(deleteQuery, [department_code], (deleteErr, deleteResult) => {
+      if (deleteErr) {
+        console.error("Error deleting department:", deleteErr);
+        return res.status(500).send("Internal Server Error");
+      }
+      console.log(`Successfully deleted department with code: ${department_code}`);
+      res.status(200).send("Department deleted successfully");
+    });
+  } catch (error) {
+    console.error("Error deleting department:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+
+//------------------- Subject  -----------------------------------
+
+server.get("/api/subject/all", (req, res) => {
+  // Fetch all batches from the batch table
+  const query =
+    "SELECT * FROM `subject` WHERE 1";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("Error fetching subject:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    console.log("subject fetched successfully");
+    res.status(200).json(result);
+  });
+});
+
+
+// Add this route to handle subject insertion or update
+server.post("/api/subject/upsert", (req, res) => {
+  const {
+    subjectCode,
+    subjectName,
+    credit,
+    compulsoryDepartments,
+    optionalDepartments,
+    semester,
+  } = req.body;
+
+  const compulsoryDepartmentsString = compulsoryDepartments.join(',');
+  const optionalDepartmentsString = optionalDepartments.join(',');
+
+  // Check if the subject with the given subjectCode already exists
+  const checkQuery = "SELECT * FROM `subject` WHERE `subject_code` = ?";
+  db.query(checkQuery, [subjectCode], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error("Error checking subject existence:", checkErr);
+      return res.status(500).send("Internal Server Error");
+    }
+
+    if (checkResult.length > 0) {
+      // If the subject exists, perform an update
+      const updateQuery = `
+        UPDATE subject
+        SET subject_name = ?, credit = ?, compulsory_department = ?, optional_department = ?, semester = ?
+        WHERE subject_code = ?
+      `;
+      db.query(
+        updateQuery,
+        [
+          subjectName,
+          credit,
+          compulsoryDepartmentsString,
+          optionalDepartmentsString,
+          semester,
+          subjectCode,
+        ],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error("Error updating subject:", updateErr);
+            return res.status(500).send("Internal Server Error");
+          }
+          console.log(`Successfully updated subject: ${subjectCode}`);
+          res.status(200).send("Subject updated successfully");
+        }
+      );
+    } else {
+      // If the subject does not exist, perform an insert
+      const insertQuery = `
+        INSERT INTO subject (subject_code, subject_name, credit, compulsory_department, optional_department, semester)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+      db.query(
+        insertQuery,
+        [
+          subjectCode,
+          subjectName,
+          credit,
+          compulsoryDepartmentsString,
+          optionalDepartmentsString,
+          semester,
+        ],
+        (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error("Error inserting subject:", insertErr);
+            return res.status(500).send("Internal Server Error");
+          }
+          console.log(`Successfully inserted subject: ${subjectCode}`);
+          res.status(201).send("Subject inserted successfully");
+        }
+      );
+    }
+  });
+});
+
+
+// Add this route to your existing server.js or equivalent file
+
+server.delete("/api/subject/delete", async (req, res) => {
+  const { subjectCode } = req.query;
+
+  try {
+    // Delete the subject in the database
+    const deleteQuery = "DELETE FROM `subject` WHERE `subject_code` = ?";
+    db.query(deleteQuery, [subjectCode], (deleteErr, deleteResult) => {
+      if (deleteErr) {
+        console.error("Error deleting subject:", deleteErr);
+        return res.status(500).send("Internal Server Error");
+      }
+      console.log(`Successfully deleted subject with code: ${subjectCode}`);
+      res.status(200).send("Subject deleted successfully");
+    });
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+

@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+} from "@mui/material";
 import CustomButton from "../../../Components/Buttons/CutomButton/CustomButton";
 import RoundTextbox from "../../../Components/Textboxs/RoundTextbox";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import axios from "axios";
 import config from "../../../ipAddress";
-import moment from "moment";
-
 
 const Batches = () => {
   const localIp = config.localIp;
@@ -23,6 +30,21 @@ const Batches = () => {
     // Fetch data when the component mounts
     fetchData();
     batchNameTextFieldRef.current?.focus();
+
+    // Add event listener for the Escape key press
+    const handleEscapeKeyPress = (event) => {
+      if (event.key === "Escape") {
+        handleCleanTextBox();
+      }
+    };
+
+    // Attach the event listener to the document
+    document.addEventListener("keydown", handleEscapeKeyPress);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      document.removeEventListener("keydown", handleEscapeKeyPress);
+    };
   }, []);
 
   const fetchData = async () => {
@@ -64,41 +86,36 @@ const Batches = () => {
         fetchData();
       } else {
         alert("Invalid input. Please check batchName and enrollmentDate.");
+        handleCleanTextBox();
+
       }
     } catch (err) {
       console.error("Error during batch insertion:", err);
       alert(`${batchName} Registration Failed`);
+      handleCleanTextBox();
+
     }
   }
 
   const handleDeleteRow = async () => {
+    console.log("handleDeleteRow function called");
     if (selectedBatchRow) {
       const { batch_name } = selectedBatchRow;
-      const currentDate = moment().format("YYYY-MM-DD");
-  
+
       try {
-        await axios.put(
-          // Use axios.delete for the DELETE request
-          `http://${localIp}:8085/api/batch/deleteBatch`,
-          {
-            batch_name,
-            available: 0,
-            deleted_date: currentDate,
-          }
-        );
-        console.log("Successfully deleted", batch_name, 'batch');
+        await axios.delete(`http://${localIp}:8085/api/batch/deleteBatch`, {
+          params: { batch_name },
+        });
+        console.log("Successfully deleted", batch_name, "batch");
         fetchData();
       } catch (error) {
-        // Handle errors, for example, show an error message to the user
         console.error("Error deleting:", error);
       } finally {
-        // Always close the dialog box after deletion is complete or if there was an error
         setOpenDialog(false);
       }
     }
   };
-  
-  
+
   const handleBatchName = (event) => {
     const value = event.target.value;
     // Check if the value is empty or does not contain special characters
@@ -119,7 +136,6 @@ const Batches = () => {
     setBatchName("");
     setEnrollmentDate("");
     batchNameTextFieldRef.current?.focus();
-
   };
 
   const columns = [
@@ -133,6 +149,7 @@ const Batches = () => {
         <IconButton
           color="error"
           onClick={() => {
+            console.log("Delete button clicked");
             setSelectedBatchRow(params.row);
             setOpenDialog(true);
           }}
@@ -175,6 +192,20 @@ const Batches = () => {
             height="40px"
             placeholder="Batch Name"
             inputRef={batchNameTextFieldRef}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.stopPropagation();
+                enrollmentDateTextFieldRef.current?.focus();
+              }
+              else if (e.key === "Escape") {
+                e.stopPropagation();
+               handleCleanTextBox();
+              }
+              else if (e.key === "ArrowDown") {
+                e.stopPropagation();
+                enrollmentDateTextFieldRef.current?.focus();
+              }
+            }}
           />
           <RoundTextbox
             className={"text-center"}
@@ -183,10 +214,18 @@ const Batches = () => {
             height="40px"
             placeholder="Enrollment Date"
             inputRef={enrollmentDateTextFieldRef}
-            onKeyDown={(e) => { 
+            onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.stopPropagation();
                 save();
+              }
+              else if (e.key === "Esc") {
+                e.stopPropagation();
+               handleCleanTextBox();
+              }
+              else if (e.key === "ArrowUp") {
+                e.stopPropagation();
+                batchNameTextFieldRef.current?.focus();
               }
             }}
           />
@@ -214,25 +253,24 @@ const Batches = () => {
 
       {/* Step 3: Render the confirmation dialog box */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogContent>
-              {selectedBatchRow && (
-                <DialogContentText>
-                Are you sure to delete : {selectedBatchRow ? selectedBatchRow.batch_name : ''}?
-              </DialogContentText>
-              
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setOpenDialog(false)} color="primary">
-                Cancel
-              </Button>
-              <Button onClick={handleDeleteRow} color="primary" autoFocus>
-                Yes
-              </Button>
-            </DialogActions>
-          </Dialog>
-
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          {selectedBatchRow && (
+            <DialogContentText>
+              Are you sure to delete :{" "}
+              {selectedBatchRow ? selectedBatchRow.batch_name : ""}?
+            </DialogContentText>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteRow} color="primary" autoFocus>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
