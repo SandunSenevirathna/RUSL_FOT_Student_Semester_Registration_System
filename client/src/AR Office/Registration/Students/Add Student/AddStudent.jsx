@@ -49,7 +49,107 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
 
     fetchBatches();
     fetchDepartments();
+    console.log(initialStudentData);
+    registrationNumberTextFieldRef.current?.focus();
+
   }, [localIp]);
+
+  useEffect(() => {
+    if (isNewStudent) {
+      handleCleanTextBox();
+    } else {
+      setRegistrationNumber(initialStudentData.student_registration_number || "");
+      setIndexNumber(initialStudentData.student_index_number || "");
+      setName(initialStudentData.student_name || "");
+      setSelectedBatch(initialStudentData.batch || "");
+      setSelectedDepartment(initialStudentData.department || "");
+      setAddress(initialStudentData.address || "");
+      setEmail(initialStudentData.email || "");
+      setTpNumber(initialStudentData.tp_number || "");
+
+    }
+  }, [initialStudentData]);
+
+  const handleSubjectUpsert = async () => {
+    try {
+      if (!registrationNumber || !indexNumber || !name || !selectedBatch || !selectedDepartment|| !address || !email|| !tpNumber) {
+        alert("All data  required.");
+        handleCleanTextBox();
+        return;
+      } else {
+        const data = {
+          registrationNumber,
+          indexNumber,
+          name,
+          selectedBatch: selectedBatch,
+          selectedDepartment: selectedDepartment,
+          address,
+          email,
+          tpNumber,
+        };
+
+        // Make a POST request to the new upsert endpoint
+        const response = await axios.post(
+          `http://${localIp}:8085/api/student/upsert`,
+          data
+        );
+
+        // Handle the response accordingly
+        if (response.status === 201) {
+          alert("Student inserted successfully");
+          handleCleanTextBox();
+        } else if (response.status === 200) {
+          alert("Student updated successfully");
+          handleCleanTextBox();
+        }
+      }
+      // Construct the data object to be sent to the backend
+
+      // Additional actions if needed
+    } catch (error) {
+      console.error("Error adding/updating subject:", error);
+      // Handle the error as needed
+    }
+  };
+
+  const handleStudentDelete = async () => {
+    try {
+      // Validate registrationNumber
+      console.log("Delete Pressed");
+      if (!registrationNumber) {
+        alert("Registration Number is required for deletion.");
+        return;
+      }
+  
+      const response = await axios.delete(
+        `http://${localIp}:8085/api/student/delete?registrationNumber=${registrationNumber}`
+      );
+  
+      if (response.status === 200) {
+        alert(`Student with Registration Number ${registrationNumber} deleted successfully`);
+        handleCleanTextBox();
+      } else {
+        alert(`Error deleting student: ${response.data || response.statusText}`);
+      }
+      // You can perform additional actions after a successful deletion
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      // Handle the error as needed
+    }
+  };
+  
+  const handleCleanTextBox = () => {
+    setRegistrationNumber("");
+    setIndexNumber("");
+    setName("");
+    setSelectedBatch("");
+    setSelectedDepartment("");
+    setAddress("");
+    setEmail("");
+    setTpNumber("");
+
+    registrationNumberTextFieldRef.current?.focus();
+  };
 
   return (
     <Box
@@ -208,7 +308,7 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
 
       <div className="flex flex-row mt-5 space-x-3 ">
         <CustomButton
-          onClick={() => {}}
+          onClick={handleSubjectUpsert}
           title="Add"
           backgroundColor="#333333"
           borderRadius={30}
@@ -217,7 +317,7 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
         />
         {/* Add similar onClick handlers for the Delete and Clean buttons */}
         <CustomButton
-          onClick={() => {}}
+          onClick={handleStudentDelete}
           title="Delete"
           backgroundColor="#333333"
           borderRadius={30}
@@ -227,7 +327,7 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
       </div>
       <div className="mt-3">
         <CustomButton
-          onClick={() => {}}
+          onClick={handleCleanTextBox}
           title="Clean"
           backgroundColor="#333333"
           borderRadius={30}

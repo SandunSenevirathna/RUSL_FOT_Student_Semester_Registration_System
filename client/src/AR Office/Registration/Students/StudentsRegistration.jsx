@@ -18,41 +18,20 @@ const StudentsRegistration = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `http://${localIp}:8085/api/student/all`
-        );
-
-        const subjectsWithId = response.data.map((subject, index) => {
-          // Split the comma-separated values into arrays
-          const compulsoryDepartments = subject.compulsory_department
-            ? subject.compulsory_department.split(",")
-            : [];
-          const optionalDepartments = subject.optional_department
-            ? subject.optional_department.split(",")
-            : [];
-
-          // Check if arrays are empty or null and set "---" accordingly
-          const compulsoryDepartmentsToShow =
-            compulsoryDepartments.length > 0 ? compulsoryDepartments : ["---"];
-          const optionalDepartmentsToShow =
-            optionalDepartments.length > 0 ? optionalDepartments : ["---"];
-
-          return {
-            id: index + 1,
-            subject_code: subject.subject_code,
-            subject_name: subject.subject_name,
-            credit: subject.credit,
-            compulsory_departments: compulsoryDepartmentsToShow,
-            optional_departments: optionalDepartmentsToShow,
-            semester: subject.semester,
-          };
-        });
-
-        setStudentAllData(subjectsWithId);
+        const response = await axios.get(`http://${localIp}:8085/api/student/all`);
+        
+        // Add a unique id to each row
+        const dataWithIds = response.data.map((row, index) => ({
+          id: index + 1, // You can use a more appropriate id based on your data
+          ...row,
+        }));
+    
+        setStudentAllData(dataWithIds);
       } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+        console.error("Error fetching student data:", error);
+      } 
     };
+    
 
     // Fetch data when the component mounts
     fetchData();
@@ -158,8 +137,8 @@ const StudentsRegistration = () => {
       >
         <AddStudent
           onClose={handleCloseDialog}
-          initialSubjectData={initialStudentData}
-          isNewSubject={isNewStudent}
+          initialStudentData={initialStudentData}
+          isNewStudent={isNewStudent}
         />
       </Dialog>
     </div>
