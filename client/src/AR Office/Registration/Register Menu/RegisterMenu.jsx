@@ -5,6 +5,7 @@ import Batches from '../Batches/Batches';
 import DepartmentsRegistration from '../Departments/DepartmentsRegistration';
 import SubjectRegistration from '../SubjectRegistration/SubjectRegistration';
 import StudentsRegistration from '../Students/StudentsRegistration';
+import LecturersRegistration from '../Lecturer/LecturersRegistration';
 
 
 function CustomTabPanel(props) {
@@ -71,6 +72,9 @@ const RegisterMenu = () => { // ========================<<< Start
             </CustomTabPanel>
             <CustomTabPanel value={value} index={3}>
                 <StudentsRegistration />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={4}>
+                <LecturersRegistration />
             </CustomTabPanel>
         </Box>
     );

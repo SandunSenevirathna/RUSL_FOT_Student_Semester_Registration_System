@@ -91,7 +91,7 @@ const SubjectRegistration = () => {
     { field: "semester", headerName: "Semester", width: 100 },
 
     {
-      field: "Actions_BillDelete",
+      field: "Actions",
       headerName: "Select",
       width: 80,
       renderCell: (params) => (

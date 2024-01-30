@@ -2,23 +2,23 @@ import React, { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, Dialog, IconButton } from "@mui/material";
 import CustomButton from "../../../Components/Buttons/CutomButton/CustomButton";
-import AddStudent from "./Add Student/AddStudent";
+import AddLecturer from "./Add Lecturer/AddLecturer";
 import axios from "axios";
 import config from "../../../ipAddress";
 import FastRewindRoundedIcon from "@mui/icons-material/FastRewindRounded";
 
-const StudentsRegistration = () => {
+const LecturersRegistration = () => {
   const localIp = config.localIp;
-  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
-  const [studentAllData, setStudentAllData] = useState([]);
+  const [isAddLecturerOpen, setIsAddLecturerOpen] = useState(false);
+  const [lecturerAllData, setLecturerAllData] = useState([]);
   const [fetchDataTrigger, setFetchDataTrigger] = useState(true);
-  const [initialStudentData, setInitialStudentData] = useState({});
-  const [isNewStudent, setIsNewStudent] = useState(true);
+  const [initialLecturerData, setInitialLecturerData] = useState({});
+  const [isNewLecturer, setIsNewLecturer] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://${localIp}:8085/api/student/all`);
+        const response = await axios.get(`http://${localIp}:8085/api/lecturer/all`);
         
         // Add a unique id to each row
         const dataWithIds = response.data.map((row, index) => ({
@@ -26,9 +26,9 @@ const StudentsRegistration = () => {
           ...row,
         }));
     
-        setStudentAllData(dataWithIds);
+        setLecturerAllData(dataWithIds);
       } catch (error) {
-        console.error("Error fetching student data:", error);
+        console.error("Error fetching lecturer data:", error);
       } 
     };
     
@@ -38,45 +38,44 @@ const StudentsRegistration = () => {
   }, [localIp, fetchDataTrigger]);
 
   const handleOpenDialog = () => {
-    setIsAddStudentOpen(true);
-    setIsNewStudent(true);
+    setIsAddLecturerOpen(true);
+    setIsNewLecturer(true);
   };
 
   const handleCloseDialog = () => {
-    setIsAddStudentOpen(false);
+    setIsAddLecturerOpen(false);
     setFetchDataTrigger((prev) => !prev);
   };
   const handleOpenAddSubject = (rowData) => {
-    setIsAddStudentOpen(true);
-    setIsNewStudent(false);
-    setInitialStudentData(rowData);
+    setIsAddLecturerOpen(true);
+    setIsNewLecturer(false);
+    setInitialLecturerData(rowData);
   };
 
   const columns = [
     {
-      field: "student_registration_number",
-      headerName: "S-REG",
-      width: 150,
+      field: "lecturer_registration_number",
+      headerName: "L-REG",
+      width: 200,
     },
-    { field: "student_index_number", headerName: "S-Index", width: 100 },
-    { field: "student_name", headerName: "Student Name", width: 200 },
+    { field: "lecturer_name", headerName: "Lecturer Name", width: 200 },
     {
-      field: "batch",
-      headerName: "Batch",
-      width: 100,
+      field: "position",
+      headerName: "Position",
+      width: 200,
     },
     {
       field: "department",
       headerName: "Departments",
-      width: 70,
+      width: 100,
     },
-    { field: "address", headerName: "Address", width: 150 },
-    { field: "email", headerName: "Email", width: 150 },
+    { field: "address", headerName: "Address", width: 200 },
+    { field: "email", headerName: "Email", width: 200 },
     { field: "tp_number", headerName: "TP", width: 130 },
 
 
     {
-      field: "Actions_BillDelete",
+      field: "Actions",
       headerName: "Select",
       width: 80,
       renderCell: (params) => (
@@ -91,11 +90,11 @@ const StudentsRegistration = () => {
   ];
 
   return (
-    <div className={`flex flex-col ${isAddStudentOpen ? "blur-md" : ""} `}>
+    <div className={`flex flex-col ${isAddLecturerOpen ? "blur-md" : ""} `}>
       <Box display="flex" justifyContent="flex-end">
         <CustomButton
           onClick={handleOpenDialog}
-          title="Add Student"
+          title="Add Lecturer"
           backgroundColor="#333333"
           borderRadius={10}
           width={130}
@@ -118,7 +117,7 @@ const StudentsRegistration = () => {
         >
           <DataGrid
             disableRowSelectionOnClick
-            rows={studentAllData}
+            rows={lecturerAllData}
             columns={columns}
             autoPageSize
           />
@@ -126,7 +125,7 @@ const StudentsRegistration = () => {
       </div>
 
       <Dialog
-        open={isAddStudentOpen}
+        open={isAddLecturerOpen}
         onClose={handleCloseDialog}
         PaperProps={{
           style: {
@@ -135,14 +134,14 @@ const StudentsRegistration = () => {
           },
         }}
       >
-        <AddStudent
+        <AddLecturer
           onClose={handleCloseDialog}
-          initialStudentData={initialStudentData}
-          isNewStudent={isNewStudent}
+          initialLecturerData={initialLecturerData}
+          isNewLecturer={isNewLecturer}
         />
       </Dialog>
     </div>
   );
 };
 
-export default StudentsRegistration;
+export default LecturersRegistration;

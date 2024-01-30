@@ -431,3 +431,133 @@ server.delete("/api/student/delete", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+//------------------- Lecturer  -----------------------------------
+
+server.get("/api/lecturer/all", (req, res) => {
+  // Fetch all batches from the batch table
+  const query = "SELECT * FROM `lecturer` WHERE 1";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("Error fetching lecturer:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    console.log("lecturer fetched successfully");
+    res.status(200).json(result);
+  });
+});
+
+// Add this route to handle subject insertion or update
+server.post("/api/lecturer/upsert", (req, res) => {
+  const {
+    registrationNumber,
+    name,
+    position,
+    selectedDepartment,
+    address,
+    email,
+    tpNumber,
+  } = req.body;
+
+  // Check if the subject with the given subjectCode already exists
+  const checkQuery =
+    "SELECT * FROM `lecturer` WHERE `lecturer_registration_number` = ? ";
+  db.query(
+    checkQuery,
+    [registrationNumber],
+    (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error("Error checking lecturer existence:", checkErr);
+        return res.status(500).send("Internal Server Error");
+      }
+
+      if (checkResult.length > 0) {
+        // If the subject exists, perform an update
+        const updateQuery = `
+        UPDATE lecturer
+        SET lecturer_name = ?, position = ?,  department = ?, address = ?, email = ?, tp_number = ?
+        WHERE lecturer_registration_number = ? 
+      `;
+        db.query(
+          updateQuery,
+          [
+            name,
+            position,
+            selectedDepartment,
+            address,
+            email,
+            tpNumber,
+            registrationNumber,
+          ],
+          (updateErr, updateResult) => {
+            if (updateErr) {
+              console.error("Error updating lecturer:", updateErr);
+              return res.status(500).send("Internal Server Error");
+            }
+            console.log(`Successfully updated lecturer: ${registrationNumber}`);
+            res.status(200).send("Lecturer updated successfully");
+          }
+        );
+      } else {
+        // If the subject does not exist, perform an insert
+        const insertQuery = `
+        INSERT INTO lecturer(lecturer_registration_number, lecturer_name, position, department, address, email, tp_number)
+        VALUEs (?, ?, ?, ?, ?, ?, ?)
+      `;
+        db.query(
+          insertQuery,
+          [
+            registrationNumber,
+            name,
+            position,
+            selectedDepartment,
+            address,
+            email,
+            tpNumber,
+          ],
+          (insertErr, insertResult) => {
+            if (insertErr) {
+              console.error("Error inserting lecturer:", insertErr);
+              return res.status(500).send("Internal Server Error");
+            }
+            console.log(`Successfully inserted lecturer: ${registrationNumber}`);
+            res.status(201).send("Lecturer inserted successfully");
+          }
+        );
+      }
+    }
+  );
+});
+
+
+server.delete("/api/lecturer/delete", async (req, res) => {
+  const { registrationNumber } = req.query;
+
+  try {
+    // Check if the registration number is provided
+    if (!registrationNumber) {
+      return res.status(400).send("Registration Number is required for deletion.");
+    }
+
+    // Delete the student in the database
+    const deleteQuery = "DELETE FROM `lecturer` WHERE `lecturer_registration_number` = ?";
+    db.query(deleteQuery, [registrationNumber], (deleteErr, deleteResult) => {
+      if (deleteErr) {
+        console.error("Error deleting lecturer:", deleteErr);
+        return res.status(500).send("Internal Server Error");
+      }
+
+      if (deleteResult.affectedRows === 0) {
+        // No rows were affected, meaning no student with the provided registration number was found
+        return res.status(404).send("Lecturer not found.");
+      }
+
+      console.log(`Successfully deleted lecturer with registration number: ${registrationNumber}`);
+      res.status(200).send("Lecturer deleted successfully");
+    });
+  } catch (error) {
+    console.error("Error deleting lecturer:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
