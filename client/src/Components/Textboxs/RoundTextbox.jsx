@@ -1,6 +1,6 @@
 import React from 'react';
 
-const RoundTextbox = ({ type, placeholder, width, height, inputRef, ...rest }) => {
+const RoundTextbox = ({ type, placeholder, width, height, inputRef,onKeyDown, ...rest }) => {
   return (
     <input
       type={type || 'text'}
@@ -17,6 +17,7 @@ const RoundTextbox = ({ type, placeholder, width, height, inputRef, ...rest }) =
         fontWeight: 400,
       }}
       ref={inputRef} // Use ref instead of inputRef
+      onKeyDown={onKeyDown}
       {...rest}
     />
   );

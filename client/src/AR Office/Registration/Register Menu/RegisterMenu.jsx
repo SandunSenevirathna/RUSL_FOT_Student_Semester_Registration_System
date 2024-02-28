@@ -6,6 +6,7 @@ import DepartmentsRegistration from '../Departments/DepartmentsRegistration';
 import SubjectRegistration from '../SubjectRegistration/SubjectRegistration';
 import StudentsRegistration from '../Students/StudentsRegistration';
 import LecturersRegistration from '../Lecturer/LecturersRegistration';
+import Semester from '../Semester/Semester';
 
 
 function CustomTabPanel(props) {
@@ -58,7 +59,8 @@ const RegisterMenu = () => { // ========================<<< Start
                     <Tab label="Subjects " {...a11yProps(2)} />
                     <Tab label="Students " {...a11yProps(3)} />
                     <Tab label="Lecturers " {...a11yProps(4)} />
-                    <Tab label="Admin " {...a11yProps(5)} />
+                    <Tab label="Semester " {...a11yProps(5)} />
+                    <Tab label="Admin " {...a11yProps(6)} />
                 </Tabs>
             </Box>
             <CustomTabPanel value={value} index={0}>
@@ -75,6 +77,9 @@ const RegisterMenu = () => { // ========================<<< Start
             </CustomTabPanel>
             <CustomTabPanel value={value} index={4}>
                 <LecturersRegistration />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={5}>
+                <Semester />
             </CustomTabPanel>
         </Box>
     );

@@ -200,6 +200,29 @@ server.get("/api/subject/all", (req, res) => {
   });
 });
 
+server.get("/api/subject/selectFromSemester/:semester", async (req, res) => {
+  const { semester } = req.params;
+
+  try {
+    // Fetch subjects for the specified semester from the database
+    const query =
+      "SELECT `subject_code`, `subject_name`, `credit`, `compulsory_department`, `optional_department` FROM `subject` WHERE `semester` = ?";
+    db.query(query, [semester], (err, result) => {
+      if (err) {
+        console.error("Error fetching subjects for semester:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      console.log(semester);
+
+      console.log("Subjects fetched successfully");
+      res.status(200).json(result);
+    });
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Add this route to handle subject insertion or update
 server.post("/api/subject/upsert", (req, res) => {
   const {
@@ -400,18 +423,20 @@ server.post("/api/student/upsert", (req, res) => {
   );
 });
 
-
 server.delete("/api/student/delete", async (req, res) => {
   const { registrationNumber } = req.query;
 
   try {
     // Check if the registration number is provided
     if (!registrationNumber) {
-      return res.status(400).send("Registration Number is required for deletion.");
+      return res
+        .status(400)
+        .send("Registration Number is required for deletion.");
     }
 
     // Delete the student in the database
-    const deleteQuery = "DELETE FROM `student` WHERE `student_registration_number` = ?";
+    const deleteQuery =
+      "DELETE FROM `student` WHERE `student_registration_number` = ?";
     db.query(deleteQuery, [registrationNumber], (deleteErr, deleteResult) => {
       if (deleteErr) {
         console.error("Error deleting student:", deleteErr);
@@ -423,13 +448,47 @@ server.delete("/api/student/delete", async (req, res) => {
         return res.status(404).send("Student not found.");
       }
 
-      console.log(`Successfully deleted student with registration number: ${registrationNumber}`);
+      console.log(
+        `Successfully deleted student with registration number: ${registrationNumber}`
+      );
       res.status(200).send("Student deleted successfully");
     });
   } catch (error) {
     console.error("Error deleting student:", error);
     res.status(500).send("Internal Server Error");
   }
+});
+
+// Endpoint to fetch student data based on email
+server.get("/api/student/selected_student_by_email", (req, res) => {
+  const { email } = req.query;
+  const query =
+    "SELECT student_registration_number, student_index_number, batch, department FROM student WHERE email = ?";
+  db.query(query, [email], (err, result) => {
+    if (err) {
+      console.error("Error fetching student data:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    res.status(200).json(result);
+  });
+});
+
+// get compulsory_subjects to show semester_registration Data Grdi
+server.get("/api/student/semester_registration/compulsory_subjects", (req, res) => {
+  const { batch, department } = req.query;
+  const query = `
+    SELECT subject_code, subject_name, credit 
+    FROM started_semester_registration 
+    WHERE batch_name = ? AND department_code = ? AND subject_type = 'C'
+  `;
+  db.query(query, [batch, department], (err, result) => {
+    if (err) {
+      console.error("Error fetching compulsory subjects:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    console.log("Compulsory subjects fetched successfully");
+    res.status(200).json(result);
+  });
 });
 
 //------------------- Lecturer  -----------------------------------
@@ -463,73 +522,68 @@ server.post("/api/lecturer/upsert", (req, res) => {
   // Check if the subject with the given subjectCode already exists
   const checkQuery =
     "SELECT * FROM `lecturer` WHERE `lecturer_registration_number` = ? ";
-  db.query(
-    checkQuery,
-    [registrationNumber],
-    (checkErr, checkResult) => {
-      if (checkErr) {
-        console.error("Error checking lecturer existence:", checkErr);
-        return res.status(500).send("Internal Server Error");
-      }
+  db.query(checkQuery, [registrationNumber], (checkErr, checkResult) => {
+    if (checkErr) {
+      console.error("Error checking lecturer existence:", checkErr);
+      return res.status(500).send("Internal Server Error");
+    }
 
-      if (checkResult.length > 0) {
-        // If the subject exists, perform an update
-        const updateQuery = `
+    if (checkResult.length > 0) {
+      // If the subject exists, perform an update
+      const updateQuery = `
         UPDATE lecturer
         SET lecturer_name = ?, position = ?,  department = ?, address = ?, email = ?, tp_number = ?
         WHERE lecturer_registration_number = ? 
       `;
-        db.query(
-          updateQuery,
-          [
-            name,
-            position,
-            selectedDepartment,
-            address,
-            email,
-            tpNumber,
-            registrationNumber,
-          ],
-          (updateErr, updateResult) => {
-            if (updateErr) {
-              console.error("Error updating lecturer:", updateErr);
-              return res.status(500).send("Internal Server Error");
-            }
-            console.log(`Successfully updated lecturer: ${registrationNumber}`);
-            res.status(200).send("Lecturer updated successfully");
+      db.query(
+        updateQuery,
+        [
+          name,
+          position,
+          selectedDepartment,
+          address,
+          email,
+          tpNumber,
+          registrationNumber,
+        ],
+        (updateErr, updateResult) => {
+          if (updateErr) {
+            console.error("Error updating lecturer:", updateErr);
+            return res.status(500).send("Internal Server Error");
           }
-        );
-      } else {
-        // If the subject does not exist, perform an insert
-        const insertQuery = `
+          console.log(`Successfully updated lecturer: ${registrationNumber}`);
+          res.status(200).send("Lecturer updated successfully");
+        }
+      );
+    } else {
+      // If the subject does not exist, perform an insert
+      const insertQuery = `
         INSERT INTO lecturer(lecturer_registration_number, lecturer_name, position, department, address, email, tp_number)
         VALUEs (?, ?, ?, ?, ?, ?, ?)
       `;
-        db.query(
-          insertQuery,
-          [
-            registrationNumber,
-            name,
-            position,
-            selectedDepartment,
-            address,
-            email,
-            tpNumber,
-          ],
-          (insertErr, insertResult) => {
-            if (insertErr) {
-              console.error("Error inserting lecturer:", insertErr);
-              return res.status(500).send("Internal Server Error");
-            }
-            console.log(`Successfully inserted lecturer: ${registrationNumber}`);
-            res.status(201).send("Lecturer inserted successfully");
+      db.query(
+        insertQuery,
+        [
+          registrationNumber,
+          name,
+          position,
+          selectedDepartment,
+          address,
+          email,
+          tpNumber,
+        ],
+        (insertErr, insertResult) => {
+          if (insertErr) {
+            console.error("Error inserting lecturer:", insertErr);
+            return res.status(500).send("Internal Server Error");
           }
-        );
-      }
+          console.log(`Successfully inserted lecturer: ${registrationNumber}`);
+          res.status(201).send("Lecturer inserted successfully");
+        }
+      );
     }
-  );
+  });
 });
-
 
 server.delete("/api/lecturer/delete", async (req, res) => {
   const { registrationNumber } = req.query;
@@ -537,11 +591,14 @@ server.delete("/api/lecturer/delete", async (req, res) => {
   try {
     // Check if the registration number is provided
     if (!registrationNumber) {
-      return res.status(400).send("Registration Number is required for deletion.");
+      return res
+        .status(400)
+        .send("Registration Number is required for deletion.");
     }
 
     // Delete the student in the database
-    const deleteQuery = "DELETE FROM `lecturer` WHERE `lecturer_registration_number` = ?";
+    const deleteQuery =
+      "DELETE FROM `lecturer` WHERE `lecturer_registration_number` = ?";
     db.query(deleteQuery, [registrationNumber], (deleteErr, deleteResult) => {
       if (deleteErr) {
         console.error("Error deleting lecturer:", deleteErr);
@@ -553,11 +610,262 @@ server.delete("/api/lecturer/delete", async (req, res) => {
         return res.status(404).send("Lecturer not found.");
       }
 
-      console.log(`Successfully deleted lecturer with registration number: ${registrationNumber}`);
+      console.log(
+        `Successfully deleted lecturer with registration number: ${registrationNumber}`
+      );
       res.status(200).send("Lecturer deleted successfully");
     });
   } catch (error) {
     console.error("Error deleting lecturer:", error);
     res.status(500).send("Internal Server Error");
   }
+});
+
+//----------------------------- Registration Start Data ---------------------------------
+
+server.post(
+  "/api/Registration_Start_Data/started_semester_registration",
+  (req, res) => {
+    const {
+      semester,
+      department,
+      batch,
+      registration_started_date,
+      registration_end_date,
+      filteredSubjects,
+      // Other relevant data you want to receive from the frontend
+    } = req.body;
+
+    try {
+      // Check if data already exists in the database
+      const checkQuery = `
+      SELECT COUNT(*) AS count
+      FROM started_semester_registration
+      WHERE semester = ? AND department_code = ? AND batch_name = ?
+    `;
+      db.query(
+        checkQuery,
+        [semester, department, batch],
+        (checkErr, checkResult) => {
+          if (checkErr) {
+            console.error("Error checking existing data:", checkErr);
+            return res.status(500).send("Internal Server Error");
+          }
+
+          // If data already exists, return an error
+          if (checkResult[0].count > 0) {
+            return res.status(400).json({
+              message:
+                "Data already exists for this semester, department, and batch",
+            });
+          }
+
+          // Prepare the data for bulk insertion
+          const bulkInsertData = filteredSubjects.map((subject) => [
+            semester,
+            department,
+            batch,
+            subject.subject_code,
+            subject.subject_name,
+            subject.credit,
+            subject.subject_type,
+            registration_started_date,
+            registration_end_date,
+          ]);
+
+          // Construct the bulk insert query
+          const bulkInsertQuery = `
+        INSERT INTO started_semester_registration 
+        (semester, department_code, batch_name, subject_code, subject_name, credit, subject_type, registration_start_date, registration_end_date) 
+        VALUES ?
+      `;
+
+          // Execute the bulk insert query
+          db.query(bulkInsertQuery, [bulkInsertData], (err, result) => {
+            if (err) {
+              console.error("Error starting registration:", err);
+              return res.status(500).send("Internal Server Error");
+            }
+
+            console.log("Registration started successfully");
+            res
+              .status(201)
+              .json({ message: "Registration started successfully" });
+          });
+        }
+      );
+    } catch (error) {
+      console.error("Error handling registration:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+server.get(
+  "/api/Registration_Start_Data/list_started_semester_registration",
+  (req, res) => {
+    try {
+      const query = `
+      SELECT batch_name, department_code, semester, 
+             MIN(registration_start_date) AS registration_start_date, 
+             MAX(registration_end_date) AS registration_end_date
+      FROM started_semester_registration
+      GROUP BY batch_name, department_code, semester;
+    `;
+      db.query(query, (err, result) => {
+        if (err) {
+          console.error(
+            "Error retrieving started semester registrations:",
+            err
+          );
+          return res.status(500).send("Internal Server Error");
+        }
+
+        res.status(200).json(result);
+      });
+    } catch (error) {
+      console.error("Error handling registration:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+server.post(
+  "/api/Registration_Start_Data/delete_started_semester_registration",
+  (req, res) => {
+    try {
+      const { batch_name, department_code, semester } = req.body;
+
+      const query = `
+      DELETE FROM started_semester_registration
+      WHERE batch_name = ? AND department_code = ? AND semester = ?;
+    `;
+
+      db.query(
+        query,
+        [batch_name, department_code, semester],
+        (err, result) => {
+          if (err) {
+            console.error("Error deleting started semester registration:", err);
+            return res.status(500).send("Internal Server Error");
+          }
+
+          res.status(200).send("Data deleted successfully");
+        }
+      );
+    } catch (error) {
+      console.error("Error handling registration deletion:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+//------------------------- AR Office Profile Part -------------------------------------
+
+server.post("/api/ar_office_profile/add_profile", (req, res) => {
+  try {
+    const { profileName, universityEmail, password, position, date, time } =
+      req.body;
+
+    // Check if universityEmail already exists in the database
+    const checkQuery = `
+      SELECT * FROM profile
+      WHERE university_email = ?;
+    `;
+
+    db.query(checkQuery, [universityEmail], (checkError, checkResults) => {
+      if (checkError) {
+        console.error(
+          "Error checking for existing university email:",
+          checkError
+        );
+        return res.status(500).send("Internal Server Error");
+      }
+
+      if (checkResults.length > 0) {
+        // If universityEmail already exists, update the corresponding profile data
+        const updateQuery = `
+          UPDATE profile
+          SET profile_name = ?, password = ?, position = ?, last_update_date = ?, last_pdate_time = ?
+          WHERE university_email = ?;
+        `;
+
+        db.query(
+          updateQuery,
+          [profileName, password, position, date, time, universityEmail],
+          (updateError, updateResult) => {
+            if (updateError) {
+              console.error("Error updating profile:", updateError);
+              return res.status(500).send("Internal Server Error");
+            }
+
+            res.status(200).send("Profile updated successfully");
+          }
+        );
+      } else {
+        // If universityEmail doesn't exist, insert a new entry with the provided profile data
+        const insertQuery = `
+          INSERT INTO profile (profile_name, university_email, password, position, last_update_date, last_pdate_time)
+          VALUES (?, ?, ?, ?, ?, ?);
+        `;
+
+        db.query(
+          insertQuery,
+          [profileName, universityEmail, password, position, date, time],
+          (insertError, insertResult) => {
+            if (insertError) {
+              console.error("Error adding profile:", insertError);
+              return res.status(500).send("Internal Server Error");
+            }
+
+            res.status(200).send("Profile added successfully");
+          }
+        );
+      }
+    });
+  } catch (error) {
+    console.error("Error handling profile addition:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+server.get("/api/ar_office_profile/all_profile_date", (req, res) => {
+  // Fetch all batches from the batch table
+  const query =
+    "SELECT `profile_name`, `university_email`, `position`, `last_update_date`, `last_pdate_time` FROM `profile` WHERE 1";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("Error fetching batches:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    // console.log("Batches fetched successfully");
+    res.status(200).json(result);
+  });
+});
+
+// Endpoint for user login
+server.post("/api/login/main_login", (req, res) => {
+  const { university_email, password } = req.body;
+
+  // Query to check if the user exists in the database
+  const query = `SELECT * FROM profile WHERE university_email = ? AND password = ?`;
+  db.query(query, [university_email, password], (err, result) => {
+    if (err) {
+      console.error("Error during login:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    // Check if any rows were returned
+    if (result.length === 0) {
+      // User not found or invalid credentials
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // User found, send success response
+    const { profile_name, university_email, position } = result[0];
+    res
+      .status(200)
+      .json({ success: true, profile_name, university_email, position });
+  });
 });
