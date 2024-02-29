@@ -4,15 +4,13 @@ import { Grid, Paper, Typography, Box } from "@mui/material";
 import RoundTextbox from "../Components/Textboxs/RoundTextbox";
 import RoundButton from "../Components/Buttons/RoundButton";
 import "./LoginMain.css";
-import { setLoginData } from '../LoginData';
+import { setLoginData } from "../LoginData";
 import config from "../ipAddress";
 import axios from "axios";
-import { sha256 } from 'js-sha256';
-
+import { sha256 } from "js-sha256";
 
 const LoginMain = () => {
   const localIp = config.localIp;
-
 
   const navigate = useNavigate();
   const emailRef = useRef(null);
@@ -54,7 +52,7 @@ const LoginMain = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-  
+
   // Function to encrypt the password (replace this with your encryption logic)
   const encryptPassword = (password) => {
     // Example: SHA256 encryption
@@ -67,16 +65,16 @@ const LoginMain = () => {
       alert("Please fill in all required fields.");
       return;
     }
-  
+
     // Validate email format
     if (!isValidEmail(university_email)) {
       alert("Please enter a valid email address.");
       return;
     }
-  
+
     // Encrypt the password before sending it to the server
     const encryptedPassword = encryptPassword(password);
-  
+
     // Send the login request to the server
     axios
       .post(`http://${localIp}:8085/api/login/main_login`, {
@@ -86,11 +84,12 @@ const LoginMain = () => {
       .then((response) => {
         // Check if the login was successful
         if (response.data.success) {
-         const { profile_name, university_email, position } = response.data;
-         setLoginData(profile_name, university_email, position);
-         
-         
-          navigate('/Main_Menu');
+          const { profile_name, university_email, position, profile_photo } =
+            response.data;
+          setLoginData(profile_name, university_email, position, profile_photo);
+          console.log(`profile_photo is ${profile_photo}`);
+
+          navigate("/Main_Menu");
         } else {
           // Display an error message to the user
           alert("Incorrect email or password. Please try again.");
@@ -99,15 +98,14 @@ const LoginMain = () => {
       .catch((error) => {
         console.error("Error during login:", error);
         // Display a generic error message to the user
-        alert("Oops! Something went wrong while logging in. Please try again later.");
+        alert(
+          "Oops! Something went wrong while logging in. Please try again later."
+        );
       });
 
-
-     // navigate('/Main_Menu');
+    // navigate('/Main_Menu');
   };
-  
-  
-  
+
   return (
     <Box
       height="100vh" // Take up the full height of the viewport
@@ -202,7 +200,7 @@ const LoginMain = () => {
                     placeholder="Enter your password"
                     onChange={handlePasswordChange}
                     onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
+                      if (event.key === "Enter") {
                         loginEvent();
                       }
                     }}
