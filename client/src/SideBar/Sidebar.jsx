@@ -22,7 +22,8 @@ const Sidebar = ({ children }) => {
   const [openSidebar, setOpenSidebar] = useState(true);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null); // Track the selected menu item
   const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
-  const { profileName, universityEmail, position } = getLoginData();
+  const { profileName, universityEmail, position, profile_photo } = getLoginData();
+  console.log(`profile_photo is ${profile_photo}`);
 
   const menuItems_Student = [
     //1 student
@@ -173,7 +174,7 @@ const Sidebar = ({ children }) => {
           <div className={`pt-5 flex flex-col items-center ${!openSidebar}`}>
             <Avatar
               alt="Profile"
-              src="https://z-p3-scontent.fcmb7-1.fna.fbcdn.net/v/t39.30808-6/300831696_3416193661941722_2324515627807344313_n.jpg?stp=dst-jpg_p640x640&_nc_cat=109&cb=99be929b-59f725be&ccb=1-7&_nc_sid=e3f864&_nc_eui2=AeHPpV9TVPtIs11obzkDIcKdyEzDAaElFJbITMMBoSUUlqEx4wQ93QMrICLfAId27oYZ2FRjNhRKz2waK7gg3gx6&_nc_ohc=8pWoYJAliggAX_6ZqQb&_nc_zt=23&_nc_ht=z-p3-scontent.fcmb7-1.fna&oh=00_AfAoHXXQtsVU5vDThA8BhQQRqfF_pdQqG3EvB8arQ7EV3A&oe=64C6B9FF"
+              src={profile_photo}
               sx={{
                 width: openSidebar ? 100 : 30,
                 height: openSidebar ? 100 : 30,

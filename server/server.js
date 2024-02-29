@@ -5,8 +5,9 @@ const cors = require("cors");
 const db = require("./dbConfig"); // Import the database configuration
 
 const server = express();
-server.use(bodyParser.json());
-server.use(bodyParser.urlencoded({ extended: true }));
+// Increase payload size limit (e.g., 50 MB)
+server.use(bodyParser.json({ limit: "50mb" }));
+server.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 server.use(express.json());
 server.use(cors());
 
@@ -474,12 +475,12 @@ server.get("/api/student/selected_student_by_email", (req, res) => {
 });
 
 // get compulsory_subjects to show semester_registration Data Grdi
-server.get("/api/student/semester_registration/compulsory_subjects", (req, res) => {
+server.get("/api/student/semester_registration/all_subjects", (req, res) => {
   const { batch, department } = req.query;
   const query = `
-    SELECT subject_code, subject_name, credit 
+    SELECT subject_code, subject_name, credit, subject_type
     FROM started_semester_registration 
-    WHERE batch_name = ? AND department_code = ? AND subject_type = 'C'
+    WHERE batch_name = ? AND department_code = ? 
   `;
   db.query(query, [batch, department], (err, result) => {
     if (err) {
@@ -863,9 +864,170 @@ server.post("/api/login/main_login", (req, res) => {
     }
 
     // User found, send success response
-    const { profile_name, university_email, position } = result[0];
+    const { profile_name, university_email, position, profile_photo } =
+      result[0];
+
     res
       .status(200)
-      .json({ success: true, profile_name, university_email, position });
+      .json({ success: true, profile_name, university_email, position, profile_photo });
+  });
+});
+
+server.post("/api/profile/save_profile_photo", (req, res) => {
+  const { university_email, cropped_image } = req.body;
+
+  // Update profile photo in the database
+  const imageBuffer = Buffer.from(cropped_image, "base64");
+  const query =
+    "UPDATE `profile` SET `profile_photo`=? WHERE `university_email`=?";
+  db.query(query, [cropped_image, university_email], (err, result) => {
+    if (err) {
+      console.error("Error updating profile photo:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    console.log(cropped_image);
+    // Profile photo updated successfully
+    console.log("Profile photo updated successfully");
+    res.status(200).json({ message: "Profile photo updated successfully" });
+  });
+});
+
+// Inside your Express server setup
+server.get("/api/profile/get_profileData", (req, res) => {
+  const universityEmail = req.query.universityEmail;
+
+  const query = `
+  SELECT profile.profile_name, profile.profile_photo,
+  student.address, student.tp_number , student.student_name
+  FROM profile INNER JOIN student ON profile.university_email = student.email WHERE profile.university_email = ?
+  `;
+  db.query(query, [universityEmail], (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+    const { profile_name, address, tp_number, student_name, profile_photo } =
+      results[0];
+    res.status(200).json({
+      profileName: profile_name,
+      address,
+      tpNumber: tp_number,
+      studentName: student_name,
+      profilePhoto: profile_photo,
+    });
+  });
+});
+
+server.post("/api/profile/update_profile_data", (req, res) => {
+  const {
+    university_email,
+    profile_name,
+    address,
+    tp_number,
+    password,
+    position,
+  } = req.body;
+
+  // Validation checks
+  if (
+    !profile_name ||
+    !address ||
+    !tp_number ||
+    tp_number.length !== 10 ||
+    !position
+  ) {
+    console.error("Profile data is incomplete or invalid.");
+    return res
+      .status(400)
+      .json({ error: "Profile data is incomplete or invalid." });
+  }
+
+  // Prepare the SQL query and values for updating profile data
+  let profileQuery;
+  let profileValues;
+  if (password) {
+    // If a new password is provided, update the password in the table
+    profileQuery = `
+      UPDATE profile
+      SET profile_name = ?, password = ?
+      WHERE university_email = ?
+    `;
+    profileValues = [profile_name, password, university_email];
+  } else {
+    // If no new password is provided, keep the old password in the table
+    profileQuery = `
+      UPDATE profile
+      SET profile_name = ?
+      WHERE university_email = ?
+    `;
+    profileValues = [profile_name, university_email];
+  }
+
+  // Prepare the SQL query and values for updating student or lecturer data based on position
+  let updateQuery;
+  let updateValues;
+  if (position === "Student") {
+    updateQuery = `
+      UPDATE student
+      SET address = ?, tp_number = ?
+      WHERE email = ?
+    `;
+  } else if (position === "Lecturer") {
+    updateQuery = `
+      UPDATE lecturer
+      SET address = ?, tp_number = ?
+      WHERE email = ?
+    `;
+  } else {
+    console.error("Invalid position:", position);
+    return res.status(400).json({ error: "Invalid position" });
+  }
+  updateValues = [address, tp_number, university_email];
+
+  // Perform database transactions
+  db.beginTransaction((err) => {
+    if (err) {
+      console.error("Error beginning transaction:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    // Update profile data
+    db.query(profileQuery, profileValues, (err, profileResult) => {
+      if (err) {
+        return db.rollback(() => {
+          console.error("Error updating profile data:", err);
+          res.status(500).json({ error: "Internal server error" });
+        });
+      }
+
+      // Update student or lecturer data
+      db.query(updateQuery, updateValues, (err, updateResult) => {
+        if (err) {
+          return db.rollback(() => {
+            console.error("Error updating", position, "data:", err);
+            res.status(500).json({ error: "Internal server error" });
+          });
+        }
+
+        // Commit transaction if all updates succeed
+        db.commit((err) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error("Error committing transaction:", err);
+              res.status(500).json({ error: "Internal server error" });
+            });
+          }
+
+          console.log("Profile and", position, "data updated successfully");
+          res
+            .status(200)
+            .json({ message: "Profile and data updated successfully" });
+        });
+      });
+    });
   });
 });

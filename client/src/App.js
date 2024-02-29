@@ -2,7 +2,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import LoginMain from './Login Main/LoginMain';
 import Sidebar from './SideBar/Sidebar';
-import Profile from './Student/Profile';
+import Profile from './Student/Profile/Profile';
 import Approve from './Lecturer/Approve';
 import Notification from './Lecturer/Notification';
 import WelcomePage from './Components/WelcomePage/WelcomePage';
