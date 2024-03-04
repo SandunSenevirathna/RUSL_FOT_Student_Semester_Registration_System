@@ -27,9 +27,7 @@ const AddLecturer = ({ onClose, initialLecturerData, isNewStudent }) => {
 
   const positionOptions = [
     "Head of Department",
-    "Senior Lecturer",
     "Lecturer",
-    "Professor",
   ];
 
   useEffect(() => {
@@ -66,8 +64,18 @@ const AddLecturer = ({ onClose, initialLecturerData, isNewStudent }) => {
     }
   }, [initialLecturerData]);
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@tec\.rjt\.ac\.lk$/; // Corrected regex pattern
+    return emailRegex.test(email);
+  };
+
   const handleSubjectUpsert = async () => {
     try {
+      if (!validateEmail(email)) {
+        alert("Invalid email format. Please enter a valid university email.");
+        return;
+      }
+      
       if (
         !registrationNumber ||
         !name ||

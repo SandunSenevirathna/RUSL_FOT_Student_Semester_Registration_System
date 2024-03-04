@@ -470,6 +470,7 @@ server.get("/api/student/selected_student_by_email", (req, res) => {
       console.error("Error fetching student data:", err);
       return res.status(500).json({ error: "Internal server error" });
     }
+    console.log(`Back End Loged Student Data ${result}`);
     res.status(200).json(result);
   });
 });
@@ -478,7 +479,7 @@ server.get("/api/student/selected_student_by_email", (req, res) => {
 server.get("/api/student/semester_registration/all_subjects", (req, res) => {
   const { batch, department } = req.query;
   const query = `
-    SELECT subject_code, subject_name, credit, subject_type
+    SELECT subject_code, subject_name, credit, subject_type, semester
     FROM started_semester_registration 
     WHERE batch_name = ? AND department_code = ? 
   `;
@@ -504,6 +505,22 @@ server.get("/api/lecturer/all", (req, res) => {
     }
 
     console.log("lecturer fetched successfully");
+    res.status(200).json(result);
+  });
+});
+
+server.get("/api/lecturer/selected_lecturer_by_email", (req, res) => {
+  const { email } = req.query;
+
+  // Fetch lecturer data based on the email
+  const query = "SELECT `position`, `department` FROM `lecturer` WHERE `email` = ?";
+  db.query(query, [email], (err, result) => {
+    if (err) {
+      console.error("Error fetching lecturer data:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    console.log("Lecturer data fetched successfully");
     res.status(200).json(result);
   });
 });
@@ -867,9 +884,13 @@ server.post("/api/login/main_login", (req, res) => {
     const { profile_name, university_email, position, profile_photo } =
       result[0];
 
-    res
-      .status(200)
-      .json({ success: true, profile_name, university_email, position, profile_photo });
+    res.status(200).json({
+      success: true,
+      profile_name,
+      university_email,
+      position,
+      profile_photo,
+    });
   });
 });
 
@@ -877,7 +898,6 @@ server.post("/api/profile/save_profile_photo", (req, res) => {
   const { university_email, cropped_image } = req.body;
 
   // Update profile photo in the database
-  const imageBuffer = Buffer.from(cropped_image, "base64");
   const query =
     "UPDATE `profile` SET `profile_photo`=? WHERE `university_email`=?";
   db.query(query, [cropped_image, university_email], (err, result) => {
@@ -886,23 +906,42 @@ server.post("/api/profile/save_profile_photo", (req, res) => {
       return res.status(500).json({ error: "Internal server error" });
     }
 
-    console.log(cropped_image);
+    //console.log(cropped_image);
     // Profile photo updated successfully
     console.log("Profile photo updated successfully");
     res.status(200).json({ message: "Profile photo updated successfully" });
   });
 });
 
-// Inside your Express server setup
 server.get("/api/profile/get_profileData", (req, res) => {
   const universityEmail = req.query.universityEmail;
+  const position = req.query.position;
 
-  const query = `
-  SELECT profile.profile_name, profile.profile_photo,
-  student.address, student.tp_number , student.student_name
-  FROM profile INNER JOIN student ON profile.university_email = student.email WHERE profile.university_email = ?
-  `;
-  db.query(query, [universityEmail], (error, results) => {
+  /* console.log(
+    `universityEmail = ${universityEmail} and position = ${position}`
+  );*/
+
+  let query; // Declare the query variable here
+
+  if (position == "Student") {
+    query = `
+          SELECT profile.profile_name, profile.profile_photo,
+          student.address, student.tp_number, student.student_name
+          FROM profile INNER JOIN student ON profile.university_email = student.email WHERE profile.university_email = ${db.escape(
+            universityEmail
+          )}
+      `;
+  } else if (position === "Lecturer" || position === "Head of Department") {
+    query = `
+          SELECT profile.profile_name, profile.profile_photo,
+          lecturer.address, lecturer.tp_number, lecturer.lecturer_name
+          FROM profile INNER JOIN lecturer ON profile.university_email = lecturer.email WHERE profile.university_email = ${db.escape(
+            universityEmail
+          )}
+      `;
+  }
+
+  db.query(query, (error, results) => {
     if (error) {
       console.error("Error executing query:", error);
       return res.status(500).json({ error: "Internal Server Error" });
@@ -910,15 +949,22 @@ server.get("/api/profile/get_profileData", (req, res) => {
     if (results.length === 0) {
       return res.status(404).json({ error: "Profile not found" });
     }
-    const { profile_name, address, tp_number, student_name, profile_photo } =
-      results[0];
-    res.status(200).json({
-      profileName: profile_name,
-      address,
-      tpNumber: tp_number,
-      studentName: student_name,
-      profilePhoto: profile_photo,
-    });
+
+    const responseData = {
+      profileName: results[0].profile_name,
+      address: results[0].address,
+      tpNumber: results[0].tp_number,
+      profilePhoto: results[0].profile_photo,
+    };
+
+    // Conditionally include lecturer_name based on position
+    if (position === "Lecturer" || position === "Head of Department") {
+      responseData.lecturerName = results[0].lecturer_name;
+    } else {
+      responseData.studentName = results[0].student_name;
+    }
+
+    res.status(200).json(responseData);
   });
 });
 
@@ -976,7 +1022,7 @@ server.post("/api/profile/update_profile_data", (req, res) => {
       SET address = ?, tp_number = ?
       WHERE email = ?
     `;
-  } else if (position === "Lecturer") {
+  } else if (position === "Lecturer" || position === "Head of Department") {
     updateQuery = `
       UPDATE lecturer
       SET address = ?, tp_number = ?
@@ -1031,3 +1077,133 @@ server.post("/api/profile/update_profile_data", (req, res) => {
     });
   });
 });
+
+//-------------------------------- registered_semester_data Table
+server.post("/api/registered_semester_data/submit_data", async (req, res) => {
+  try {
+    // Log the request body
+    console.log("Request Body:", req.body);
+
+    // Extract data from the request body
+    const { student_registration_number, subjects, semester, date } = req.body;
+
+    // Check if a record with the same student_registration_number and semester already exists
+    const checkQuery = `
+      SELECT * FROM registered_semester_data
+      WHERE student_registration_number = ? AND semester = ?
+    `;
+
+    db.query(checkQuery, [student_registration_number, semester], async (err, rows) => {
+      if (err) {
+        console.error("Error checking for existing record:", err);
+        res.status(500).json({ error: "Internal server error" });
+        return;
+      }
+
+      // If a record exists, delete it
+      if (rows.length > 0) {
+        const deleteQuery = `
+          DELETE FROM registered_semester_data
+          WHERE student_registration_number = ? AND semester = ?
+        `;
+
+        db.query(deleteQuery, [student_registration_number, semester], async (err, result) => {
+          if (err) {
+            console.error("Error deleting existing record:", err);
+            res.status(500).json({ error: "Internal server error" });
+            return;
+          }
+
+          console.log("Existing record deleted successfully");
+
+          // Insert new records for each subject
+          await insertNewRecords(student_registration_number, subjects, semester, date, res);
+        });
+      } else {
+        // Insert new records for each subject
+        await insertNewRecords(student_registration_number, subjects, semester, date, res);
+      }
+    });
+  } catch (error) {
+    // Handle any errors that occur during the process
+    console.error("Error submitting data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+async function insertNewRecords(student_registration_number, subjects, semester, date, res) {
+  const insertQuery = `
+    INSERT INTO registered_semester_data 
+    (student_registration_number, subject_code, subject_name, semester, date) 
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  // Loop through each subject and execute the insert query
+  for (const subject of subjects) {
+    await new Promise((resolve, reject) => {
+      db.query(
+        insertQuery,
+        [
+          student_registration_number,
+          subject.code,
+          subject.name,
+          semester,
+          date,
+        ],
+        (err, result) => {
+          if (err) {
+            console.error("Error inserting record:", err);
+            reject(err);
+          } else {
+            console.log("Record inserted successfully");
+            resolve(result);
+          }
+        }
+      );
+    });
+  }
+
+  // Respond with success message
+  res.status(200).json({ message: "Data submitted successfully" });
+}
+
+// Endpoint to fetch registered subjects on previous semesters
+server.get(
+  "/api/student/semester_registration/all_subjects_registered_previous_semesters",
+  (req, res) => {
+    const { student_registration_number } = req.query;
+    const sql =
+      "SELECT `subject_code`,`subject_name`, `semester`, `date`, `approve` FROM `registered_semester_data` WHERE `student_registration_number` = ?";
+
+    db.query(sql, [student_registration_number], (err, results) => {
+      if (err) {
+        console.error("Error fetching subjects:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results);
+      }
+    });
+  }
+);
+
+// Endpoint to fetch subject names and credits based on subject codes
+server.get(
+  "/api/student/semester_registration/all_subjects_registered_previous_semesters/subject_names",
+  (req, res) => {
+    const subjectCodes = req.query.subjectCodes.split(","); // Split subject codes from query parameter
+
+    console.log(subjectCodes);
+    const sql =
+      "SELECT `subject_name`, `credit` FROM `subject` WHERE `subject_code` IN (?)";
+
+    db.query(sql, [subjectCodes], (err, results) => {
+      if (err) {
+        console.error("Error fetching subject names:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results);
+        console.log(results);
+      }
+    });
+  }
+);

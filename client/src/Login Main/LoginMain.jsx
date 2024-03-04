@@ -49,7 +49,7 @@ const LoginMain = () => {
   // Function to validate email format
   const isValidEmail = (email) => {
     // Regular expression for validating email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@tec\.rjt\.ac\.lk$/; // Corrected regex pattern
     return emailRegex.test(email);
   };
 
@@ -87,7 +87,6 @@ const LoginMain = () => {
           const { profile_name, university_email, position, profile_photo } =
             response.data;
           setLoginData(profile_name, university_email, position, profile_photo);
-          console.log(`profile_photo is ${profile_photo}`);
 
           navigate("/Main_Menu");
         } else {

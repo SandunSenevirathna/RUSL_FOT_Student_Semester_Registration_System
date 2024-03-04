@@ -105,6 +105,27 @@ const AddSubject = ({ onClose, initialSubjectData, isNewSubject }) => {
 
   const handleSubjectUpsert = async () => {
     try {
+      // Validate credit value
+      const creditValue = parseInt(credit);
+      if (isNaN(creditValue) || creditValue < 0 || creditValue > 10) {
+        alert("Credit value must be an integer between 0 and 10.");
+        return;
+      }
+      // Validate subject code
+      const subjectCodePattern = /^[A-Z0-9]+$/;
+      if (!subjectCodePattern.test(subjectCode)) {
+        alert(
+          "Subject code must contain only uppercase letters (A-Z) and integers."
+        );
+        return;
+      }
+
+      // Validate subject name
+      const subjectNamePattern = /^[A-Za-z\s]+$/;
+      if (!subjectNamePattern.test(subjectName)) {
+        alert("Subject name must contain only alphabetical characters (A-z).");
+        return;
+      }
       if (!subjectCode || !subjectName || !credit || !selectedSemester) {
         alert("SubjectCode, SubjectName, Credit, and Semester are required.");
         handleCleanTextBox();

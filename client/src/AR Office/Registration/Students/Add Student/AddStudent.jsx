@@ -30,7 +30,9 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
     // Fetch all batches from the backend when the component mounts
     const fetchBatches = async () => {
       try {
-        const response = await axios.get(`http://${localIp}:8085/api/batch/all`);
+        const response = await axios.get(
+          `http://${localIp}:8085/api/batch/all`
+        );
         setBatches(response.data || []);
       } catch (error) {
         console.error("Error fetching batches:", error);
@@ -40,7 +42,9 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
     // Fetch all departments from the backend when the component mounts
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get(`http://${localIp}:8085/api/departments/all`);
+        const response = await axios.get(
+          `http://${localIp}:8085/api/departments/all`
+        );
         setDepartments(response.data || []);
       } catch (error) {
         console.error("Error fetching departments:", error);
@@ -51,14 +55,15 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
     fetchDepartments();
     console.log(initialStudentData);
     registrationNumberTextFieldRef.current?.focus();
-
   }, [localIp]);
 
   useEffect(() => {
     if (isNewStudent) {
       handleCleanTextBox();
     } else {
-      setRegistrationNumber(initialStudentData.student_registration_number || "");
+      setRegistrationNumber(
+        initialStudentData.student_registration_number || ""
+      );
       setIndexNumber(initialStudentData.student_index_number || "");
       setName(initialStudentData.student_name || "");
       setSelectedBatch(initialStudentData.batch || "");
@@ -66,13 +71,44 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
       setAddress(initialStudentData.address || "");
       setEmail(initialStudentData.email || "");
       setTpNumber(initialStudentData.tp_number || "");
-
     }
   }, [initialStudentData]);
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@tec\.rjt\.ac\.lk$/; // Corrected regex pattern
+    return emailRegex.test(email);
+  };
+
   const handleSubjectUpsert = async () => {
     try {
-      if (!registrationNumber || !indexNumber || !name || !selectedBatch || !selectedDepartment|| !address || !email|| !tpNumber) {
+      const registrationNumberPattern = /^[A-Za-z]+\/\d{4}\/\d{3}$/; // Define the pattern for the registration number
+      if (!registrationNumberPattern.test(registrationNumber)) {
+        alert(
+          "Registration Number must start with alphabets and be in the format 'XXXX/XXXX/XXX'."
+        );
+        return;
+      }
+     
+      if (!validateEmail(email)) {
+        alert("Invalid email format. Please enter a valid university email.");
+        return;
+      }
+      // Validate TP number length
+      if (tpNumber.length !== 10) {
+        alert("TP Number must have exactly 10 characters.");
+        return;
+      }
+
+      if (
+        !registrationNumber ||
+        !indexNumber ||
+        !name ||
+        !selectedBatch ||
+        !selectedDepartment ||
+        !address ||
+        !email ||
+        !tpNumber
+      ) {
         alert("All data  required.");
         handleCleanTextBox();
         return;
@@ -120,16 +156,20 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
         alert("Registration Number is required for deletion.");
         return;
       }
-  
+
       const response = await axios.delete(
         `http://${localIp}:8085/api/student/delete?registrationNumber=${registrationNumber}`
       );
-  
+
       if (response.status === 200) {
-        alert(`Student with Registration Number ${registrationNumber} deleted successfully`);
+        alert(
+          `Student with Registration Number ${registrationNumber} deleted successfully`
+        );
         handleCleanTextBox();
       } else {
-        alert(`Error deleting student: ${response.data || response.statusText}`);
+        alert(
+          `Error deleting student: ${response.data || response.statusText}`
+        );
       }
       // You can perform additional actions after a successful deletion
     } catch (error) {
@@ -137,7 +177,7 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
       // Handle the error as needed
     }
   };
-  
+
   const handleCleanTextBox = () => {
     setRegistrationNumber("");
     setIndexNumber("");
@@ -168,7 +208,7 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
           value={registrationNumber}
           onChange={(e) => setRegistrationNumber(e.target.value)}
           height="40px"
-          placeholder="S-REG {ITT-1819-079}"
+          placeholder="S-REG {ITT/2019/079}"
           inputRef={registrationNumberTextFieldRef}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === "ArrowDown") {
@@ -198,7 +238,7 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           height="40px"
-          placeholder="Student Name"
+          placeholder="Student Full Name"
           inputRef={nameTextFieldRef}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === "ArrowDown") {
@@ -237,10 +277,7 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
         </FormControl>
 
         <FormControl size="small">
-          <InputLabel
-            id="department-label"
-            sx={{ textAlign: "center", mb: 1 }}
-          >
+          <InputLabel id="department-label" sx={{ textAlign: "center", mb: 1 }}>
             Department
           </InputLabel>
           <Select
@@ -261,7 +298,10 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
               <em style={{ color: "#A9A3AF" }}>Select Department</em>
             </MenuItem>
             {departments.map((department) => (
-              <MenuItem key={department.department_code} value={department.department_code}>
+              <MenuItem
+                key={department.department_code}
+                value={department.department_code}
+              >
                 {department.department_code}
               </MenuItem>
             ))}

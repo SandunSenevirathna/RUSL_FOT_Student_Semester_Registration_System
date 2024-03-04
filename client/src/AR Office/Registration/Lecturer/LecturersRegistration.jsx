@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { Box, Dialog, IconButton } from "@mui/material";
 import CustomButton from "../../../Components/Buttons/CutomButton/CustomButton";
 import AddLecturer from "./Add Lecturer/AddLecturer";
@@ -113,6 +113,9 @@ const LecturersRegistration = () => {
             "& .MuiDataGrid-columnHeaderTitle": {
               color: "white",
             },
+            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+              color: "#333333",
+            },
           }}
         >
           <DataGrid
@@ -120,6 +123,7 @@ const LecturersRegistration = () => {
             rows={lecturerAllData}
             columns={columns}
             autoPageSize
+            slots={{ toolbar: GridToolbar }}
           />
         </Box>
       </div>

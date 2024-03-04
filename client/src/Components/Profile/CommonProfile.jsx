@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateRounded";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
+import CleaningServicesRoundedIcon from '@mui/icons-material/CleaningServicesRounded';
 import AvatarEditor from "react-avatar-editor";
 import { getLoginData } from "../../LoginData";
 import { sha256 } from 'js-sha256';
@@ -23,7 +24,7 @@ const CommonProfile = () => {
 
   const { universityEmail, position } = getLoginData();
   const [profileName, setProfileName] = useState("");
-  const [studentName, setStudentName] = useState("");
+  const [userFullName, setUserFullName] = useState("");
   const [address, setAddress] = useState("");
   const [tpNumber, setTpNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -36,22 +37,28 @@ const CommonProfile = () => {
 
 
   useEffect(() => {
-    // Inside useEffect in CommonProfile component
     const fetchProfileData = async () => {
-      console.log(universityEmail);
-
       try {
         const response = await axios.get(
-          `http://${localIp}:8085/api/profile/get_profileData?universityEmail=${universityEmail}`
+          `http://${localIp}:8085/api/profile/get_profileData?universityEmail=${universityEmail}&position=${position}`
         );
 
         if (response.status === 200) {
-          const { profileName, address, tpNumber, studentName, profilePhoto } =
+          const { profileName, address, tpNumber, studentName, profilePhoto, lecturerName } =
             response.data;
+
+          // Set the profileName, address, tpNumber, and profilePicture based on the fetched data
           setProfileName(profileName);
           setAddress(address);
           setTpNumber(tpNumber);
-          setStudentName(studentName);
+
+          // If the position is "Student", use studentName; otherwise, use lecturerName
+          if (position === "Student") {
+            setUserFullName(studentName);
+          } else {
+            setUserFullName(lecturerName);
+          }
+
           setProfilePicture(profilePhoto);
         } else {
           console.error("Failed to fetch profile data.");
@@ -62,8 +69,10 @@ const CommonProfile = () => {
     };
 
     fetchProfileData();
-  }, [localIp, universityEmail]);
+  }, [localIp, universityEmail, position]); // Include position as a dependency
 
+
+  
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -92,9 +101,6 @@ const CommonProfile = () => {
         if (response.status === 200) {
           // Handle successful response
           console.log("Profile photo saved successfully.");
-          console.log(`University Email is ${universityEmail}`);
-          console.log("Profile photo URL is: ", response.data.profile_photo_url);
-          setProfilePicture(croppedImage);
         } else {
           // Handle error response
           console.error("Failed to save profile photo.");
@@ -120,6 +126,13 @@ const CommonProfile = () => {
         return; // Exit the function if data is incomplete or invalid
     }
   
+    // Validate profile name
+    const profileNamePattern = /^[A-Za-z.]+$/;
+    if (!profileNamePattern.test(profileName)) {
+      alert("Profile name must consist of uppercase letters from A to Z.");
+      return;
+    }
+
     try {
         const updatedData = {
             university_email: universityEmail,
@@ -269,7 +282,7 @@ const CommonProfile = () => {
               label="Full Name"
               variant="outlined"
               style={{ marginBottom: "10px" }}
-              value={studentName} // Bind universityEmail from login data
+              value={userFullName} // Bind universityEmail from login data
               disabled
             />
             <TextField
@@ -312,7 +325,7 @@ const CommonProfile = () => {
             <Button
               sx={{ mr: 2.5 }}
               variant="contained"
-              endIcon={<SaveRoundedIcon />}
+              endIcon={<CleaningServicesRoundedIcon />}
               color="warning"
               onClick={handleClaer}
             >
