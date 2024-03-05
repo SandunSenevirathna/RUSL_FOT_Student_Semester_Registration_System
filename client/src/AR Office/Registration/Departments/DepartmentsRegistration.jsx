@@ -27,7 +27,6 @@ const DepartmentsRegistration = () => {
   const departmentNameTextFieldRef = React.useRef(null);
   const [loading, setLoading] = useState(false);
 
-
   useEffect(() => {
     // Fetch data when the component mounts
     fetchData();
@@ -48,7 +47,6 @@ const DepartmentsRegistration = () => {
       document.removeEventListener("keydown", handleEscapeKeyPress);
     };
   }, []);
-
 
   const fetchData = async () => {
     try {
@@ -78,6 +76,15 @@ const DepartmentsRegistration = () => {
 
   async function save() {
     try {
+      // Check if departmentsCode contains numbers or symbols
+      const containsNumbersOrSymbols = /[0-9!@#$%^&*(),.?":{}|<>]/.test(
+        departmentsCode
+      );
+      if (containsNumbersOrSymbols) {
+        alert("Department code should only contain letters.");
+        return;
+      }
+
       if (departmentsCode && departmentsName) {
         await axios.post(`http://${localIp}:8085/api/departments/upsert`, {
           department_code: departmentsCode,
@@ -124,7 +131,6 @@ const DepartmentsRegistration = () => {
     setDepartmentsName("");
     setSelectedDeparmentRow("");
     departmentCodeTextFieldRef.current?.focus();
-
   };
 
   const columns = [
@@ -144,7 +150,6 @@ const DepartmentsRegistration = () => {
             setDepartmentsName(params.row.departments_name);
             departmentNameTextFieldRef.current?.focus();
             departmentNameTextFieldRef.current?.select();
-
           }}
         >
           <FastRewindRoundedIcon />
@@ -196,12 +201,10 @@ const DepartmentsRegistration = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === "ArrowDown") {
                 departmentNameTextFieldRef.current?.focus();
-              }
-              else if (e.key === "Escape") {
-               handleCleanTextBox();
-              }
-              else if (e.key === "Delete") {
-                setOpenDialog(true)
+              } else if (e.key === "Escape") {
+                handleCleanTextBox();
+              } else if (e.key === "Delete") {
+                setOpenDialog(true);
               }
             }}
           />
@@ -215,16 +218,13 @@ const DepartmentsRegistration = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 save();
-              }
-              else if (e.key === "Delete") {
-                setOpenDialog(true)
-              }
-              else if ( e.key === "ArrowUp") {
+              } else if (e.key === "Delete") {
+                setOpenDialog(true);
+              } else if (e.key === "ArrowUp") {
                 departmentCodeTextFieldRef.current?.focus();
-              }
-              else if (e.key === "Escape") {
+              } else if (e.key === "Escape") {
                 handleCleanTextBox();
-               }
+              }
             }}
           />
         </div>

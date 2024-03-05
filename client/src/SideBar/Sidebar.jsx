@@ -12,6 +12,7 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import AddReactionRoundedIcon from "@mui/icons-material/AddReactionRounded";
 import { getLoginData } from "../LoginData";
 import { getStudentData, setStudentData } from "../Student/StudentData";
+import { getLecturerData, setLecturerData } from "../Lecturer/LecturerData";
 import "./Sidebar.css";
 import axios from "axios";
 import config from "../ipAddress";
@@ -23,7 +24,6 @@ const Sidebar = ({ children }) => {
   const [selectedMenuItem, setSelectedMenuItem] = useState(null); // Track the selected menu item
   const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
   const { profileName, universityEmail, position, profile_photo } = getLoginData();
-  console.log(`profile_photo is ${profile_photo}`);
 
   const menuItems_Student = [
     //1 student
@@ -48,14 +48,13 @@ const Sidebar = ({ children }) => {
       icon: NotificationsNoneOutlinedIcon,
     },
   ];
-
+ 
   const menuItems_Lecturer = [
     //2 Lec
-    { name: "Approve", link: "/Main_Menu/Approve", icon: TaskAltOutlinedIcon },
-    { name: "Subject", link: "/Main_Menu/Subject", icon: ClassOutlinedIcon },
+    { name: "Approve", link: "/Main_Menu/Lec_Approve", icon: TaskAltOutlinedIcon },
     {
       name: "Profile",
-      link: "/Main_Menu/Profile",
+      link: "/Main_Menu/Lec_Profile",
       icon: AccountCircleOutlinedIcon,
     },
   ];
@@ -146,6 +145,27 @@ const Sidebar = ({ children }) => {
         })
         .catch((error) => {
           console.error("Error fetching user data:", error);
+        });
+    }
+
+    if (position === "Head of Department" || position === "Lecturer") {
+      console.log(universityEmail);
+      axios
+        .get(`http://${localIp}:8085/api/lecturer/selected_lecturer_by_email`, {
+          params: { email: universityEmail },
+        })
+        .then((response) => {
+          if (response.data.length > 0) {
+            // Check if data is received
+            const { position, department } = response.data[0];
+            setLecturerData(position, department);
+            console.log("Lecturer data:", getLecturerData());
+          } else {
+            console.log("No lecturer data found.");
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching lecturer data:", error);
         });
     }
   }, [localIp, position, universityEmail]);

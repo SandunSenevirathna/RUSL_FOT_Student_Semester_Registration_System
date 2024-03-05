@@ -26,7 +26,6 @@ const Semester = () => {
   const [isSemesterDataOk, setIsSemesterDataOk] = useState(false);
   const [isListOpenOK, setIsListOpenOK] = useState(false);
 
-
   useEffect(() => {
     // Fetch all batches from the backend when the component mounts
     const fetchBatches = async () => {
@@ -135,9 +134,9 @@ const Semester = () => {
     }
   };
 
-  const handelListOpen = () =>{
+  const handelListOpen = () => {
     setIsListOpenOK(true);
-  }
+  };
 
   const handleCloseDialog = () => {
     setIsSemesterDataOk(false);
@@ -224,6 +223,7 @@ const Semester = () => {
             <Select
               labelId="semester-label"
               id="semester-select"
+              label="Semester"
               value={selectedSemester}
               onChange={handleSemesterChange} // Update the onChange handler
               //sx={{ borderRadius: "40px" }}
@@ -277,10 +277,9 @@ const Semester = () => {
             size="large"
             onClick={handelListOpen} // Update the onClick event handler
           >
-             List
+            List
           </Button>
         </Box>
-
       </Box>
 
       <div className="mt-2 items-center justify-center h-screen">
@@ -336,10 +335,7 @@ const Semester = () => {
           },
         }}
       >
-        <StartedSemesterRegistrationList
-          onClose={handleCloseDialog}
-          
-        />
+        <StartedSemesterRegistrationList onClose={handleCloseDialog} />
       </Dialog>
     </Box>
   );
