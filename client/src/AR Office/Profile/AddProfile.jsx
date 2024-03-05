@@ -62,12 +62,7 @@ const AddProfile = ({ selectedRow }) => {
       return;
     }
 
-    // Validate profile name
-    const profileNamePattern = /^[A-S.]+$/;
-    if (!profileNamePattern.test(profileName)) {
-      alert("Profile name must consist of uppercase letters from A to S and periods.");
-      return;
-    }
+   
     
     // Check if all fields are filled
     if (profileName && universityEmail && password && position) {

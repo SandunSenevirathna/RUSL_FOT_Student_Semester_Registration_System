@@ -2,6 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import React from "react";
 import BackupIcon from "@mui/icons-material/Backup";
 import { getSelectedSubjectData } from "./SelectedSubjectData";
+import { getStudentData } from "../StudentData";
 import axios from "axios";
 import config from "../../ipAddress";
 import moment from "moment";
@@ -10,6 +11,8 @@ const FinalStep = ({onClose}) => {
   const localIp = config.localIp;
 
   const selectedSubjectData = getSelectedSubjectData(); // Retrieve selected subject data
+  const { department } = getStudentData();
+
   const currentDate = moment().format("YYYY-MM-DD");
 
   // Function to handle form submission
@@ -23,10 +26,11 @@ const FinalStep = ({onClose}) => {
           name: subject.name
         })),
         semester: selectedSubjectData.semester,
+        department:department,
         date: currentDate,
       };
       
-     // console.log(dataToSend);
+      //console.log(dataToSend);
       // Send data to the backend for submission
       axios.post(`http://${localIp}:8085/api/registered_semester_data/submit_data`, dataToSend)
         .then(response => {

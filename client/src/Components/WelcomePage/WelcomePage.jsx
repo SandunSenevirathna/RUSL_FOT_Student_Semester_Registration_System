@@ -6,7 +6,7 @@ const WelcomePage = () => {
       <h1 className="text-4xl md:text-6xl font-bold mb-4 text-[#343541]  whitespace-nowrap">
         TechEnroll Hub•
       </h1>
-      <h1 className="text-sm text-[#343541] tracking-widest">- Faculty of Technology -</h1>
+      <h1 className="text-lg font-bold  text-[#343541] tracking-widest">- Faculty of Technology -</h1>
     </div>
   );
 };

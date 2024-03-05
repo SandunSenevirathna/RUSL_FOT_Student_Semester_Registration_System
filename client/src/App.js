@@ -12,6 +12,7 @@ import Student_Semester from './Student/Semester/Student_Semester';
 import Lec_Profile from './Lecturer/Profile/Profile';
 import Lec_Approve from './Lecturer/Approve/Approve';
 
+
 const App = () => {
   return (
     <Routes>

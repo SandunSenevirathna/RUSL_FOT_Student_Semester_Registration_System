@@ -513,7 +513,8 @@ server.get("/api/lecturer/selected_lecturer_by_email", (req, res) => {
   const { email } = req.query;
 
   // Fetch lecturer data based on the email
-  const query = "SELECT `position`, `department` FROM `lecturer` WHERE `email` = ?";
+  const query =
+    "SELECT `position`, `department` FROM `lecturer` WHERE `email` = ?";
   db.query(query, [email], (err, result) => {
     if (err) {
       console.error("Error fetching lecturer data:", err);
@@ -1085,7 +1086,13 @@ server.post("/api/registered_semester_data/submit_data", async (req, res) => {
     console.log("Request Body:", req.body);
 
     // Extract data from the request body
-    const { student_registration_number, subjects, semester, date } = req.body;
+    const {
+      student_registration_number,
+      subjects,
+      semester,
+      department,
+      date,
+    } = req.body;
 
     // Check if a record with the same student_registration_number and semester already exists
     const checkQuery = `
@@ -1093,37 +1100,59 @@ server.post("/api/registered_semester_data/submit_data", async (req, res) => {
       WHERE student_registration_number = ? AND semester = ?
     `;
 
-    db.query(checkQuery, [student_registration_number, semester], async (err, rows) => {
-      if (err) {
-        console.error("Error checking for existing record:", err);
-        res.status(500).json({ error: "Internal server error" });
-        return;
-      }
+    db.query(
+      checkQuery,
+      [student_registration_number, semester],
+      async (err, rows) => {
+        if (err) {
+          console.error("Error checking for existing record:", err);
+          res.status(500).json({ error: "Internal server error" });
+          return;
+        }
 
-      // If a record exists, delete it
-      if (rows.length > 0) {
-        const deleteQuery = `
+        // If a record exists, delete it
+        if (rows.length > 0) {
+          const deleteQuery = `
           DELETE FROM registered_semester_data
           WHERE student_registration_number = ? AND semester = ?
         `;
 
-        db.query(deleteQuery, [student_registration_number, semester], async (err, result) => {
-          if (err) {
-            console.error("Error deleting existing record:", err);
-            res.status(500).json({ error: "Internal server error" });
-            return;
-          }
+          db.query(
+            deleteQuery,
+            [student_registration_number, semester],
+            async (err, result) => {
+              if (err) {
+                console.error("Error deleting existing record:", err);
+                res.status(500).json({ error: "Internal server error" });
+                return;
+              }
 
-          console.log("Existing record deleted successfully");
+              console.log("Existing record deleted successfully");
 
+              // Insert new records for each subject
+              await insertNewRecords(
+                student_registration_number,
+                subjects,
+                semester,
+                department,
+                date,
+                res
+              );
+            }
+          );
+        } else {
           // Insert new records for each subject
-          await insertNewRecords(student_registration_number, subjects, semester, date, res);
-        });
-      } else {
-        // Insert new records for each subject
-        await insertNewRecords(student_registration_number, subjects, semester, date, res);
+          await insertNewRecords(
+            student_registration_number,
+            subjects,
+            semester,
+            department,
+            date,
+            res
+          );
+        }
       }
-    });
+    );
   } catch (error) {
     // Handle any errors that occur during the process
     console.error("Error submitting data:", error);
@@ -1131,11 +1160,18 @@ server.post("/api/registered_semester_data/submit_data", async (req, res) => {
   }
 });
 
-async function insertNewRecords(student_registration_number, subjects, semester, date, res) {
+async function insertNewRecords(
+  student_registration_number,
+  subjects,
+  semester,
+  department,
+  date,
+  res
+) {
   const insertQuery = `
     INSERT INTO registered_semester_data 
-    (student_registration_number, subject_code, subject_name, semester, date) 
-    VALUES (?, ?, ?, ?, ?)
+    (student_registration_number, subject_code, subject_name, semester,department, date) 
+    VALUES (?, ?, ?, ?, ?,?)
   `;
 
   // Loop through each subject and execute the insert query
@@ -1148,6 +1184,7 @@ async function insertNewRecords(student_registration_number, subjects, semester,
           subject.code,
           subject.name,
           semester,
+          department,
           date,
         ],
         (err, result) => {
@@ -1207,3 +1244,140 @@ server.get(
     });
   }
 );
+
+//----------------------- Approve ---------------
+// Assuming you have already configured your express app and connected to the database
+
+// Endpoint to fetch registration data based on department
+server.get("/api/api/lecturerData/list_data_for_approve", async (req, res) => {
+  try {
+    const department = req.query.department;
+    console.log("Department:", req.query.department);
+
+    const query = `
+      SELECT DISTINCT  rs.student_registration_number, s.student_index_number, rs.semester, rs.comment
+      FROM registered_semester_data rs
+      JOIN student s ON rs.student_registration_number = s.student_registration_number
+      WHERE rs.department = ?  AND rs.approve = 0;
+    `;
+    // Assuming db is your database connection
+    db.query(query, [department], (err, result) => {
+      if (err) {
+        console.error("Error retrieving registration data:", err);
+        return res.status(500).send("Internal Server Error");
+      }
+      res.status(200).json(result);
+    });
+  } catch (error) {
+    console.error("Error handling registration:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+// Endpoint to fetch student data and profile photo using registration number
+server.get("/api/approve/view_more/getstudentData", async (req, res) => {
+  try {
+    const registrationNumber = req.query.registrationNumber;
+    const query = `
+      SELECT s.student_name, s.batch, s.email, p.profile_photo
+      FROM student s
+      LEFT JOIN profile p ON s.email = p.university_email
+      WHERE s.student_registration_number = ?;
+    `;
+    // Assuming db is your database connection
+    db.query(query, [registrationNumber], (err, result) => {
+      if (err) {
+        console.error("Error retrieving student details:", err);
+        return res.status(500).send("Internal Server Error");
+      }
+      
+      if (result.length > 0) {
+        const studentData = result[0];
+        const profilePhoto = studentData.profile_photo;
+        // Check if profile photo exists
+        if (profilePhoto) {
+          // Send profile photo data as base64 string
+          const base64Image = profilePhoto.split(",")[1];
+          res.status(200).json({ ...studentData, profile_photo: base64Image });
+        } else {
+          res.status(200).json(studentData); // No profile photo available
+        }
+      } else {
+        res.status(404).send("Student not found"); // No student data found
+      }
+    });
+  } catch (error) {
+    console.error("Error handling student details:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Endpoint to fetch subject data based on student registration number
+server.get("/api/approve/view_more/getSubjectData", async (req, res) => {
+  try {
+    const registrationNumber = req.query.registrationNumber;
+    const query = `
+      SELECT  subject_code, subject_name
+      FROM registered_semester_data
+      WHERE student_registration_number = ? AND approve = 0;
+    `;
+    // Assuming db is your database connection
+    db.query(query, [registrationNumber], (err, result) => {
+      if (err) {
+        console.error("Error retrieving subject data:", err);
+        return res.status(500).send("Internal Server Error");
+      }
+      
+      res.status(200).json(result);
+    });
+  } catch (error) {
+    console.error("Error handling subject data:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+server.post("/api/approve/view_more/approveRegistration", async (req, res) => {
+  try {
+    const { registrationNumber } = req.body;
+    const query = `
+      UPDATE registered_semester_data
+      SET approve = 1
+      WHERE student_registration_number = ?;
+    `;
+    // Assuming db is your database connection
+    db.query(query, [registrationNumber], (err, result) => {
+      if (err) {
+        console.error("Error updating registration:", err);
+        return res.status(500).send("Internal Server Error");
+      }
+      res.status(200).send("Registration approved successfully.");
+    });
+  } catch (error) {
+    console.error("Error handling registration approval:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+server.post("/api/approve/view_more/rejectRegistration", async (req, res) => {
+  try {
+    const {  registrationNumber, comment } = req.body;
+    const query = `
+      UPDATE registered_semester_data
+      SET approve = 0, comment= ?
+      WHERE student_registration_number = ?;
+    `;
+    // Assuming db is your database connection
+    db.query(query, [comment, registrationNumber], (err, result) => {
+      if (err) {
+        console.error("Error updating registration:", err);
+        return res.status(500).send("Internal Server Error");
+      }
+      res.status(200).send("Registration approved successfully.");
+    });
+  } catch (error) {
+    console.error("Error handling registration approval:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
