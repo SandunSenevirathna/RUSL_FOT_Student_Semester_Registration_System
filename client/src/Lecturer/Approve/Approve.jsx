@@ -1,6 +1,7 @@
 import { Box, Button, Dialog, Divider, Typography } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { getLecturerData } from "../LecturerData";
+import { getLoginData } from "../../LoginData";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import axios from "axios";
 import config from "../../ipAddress";
@@ -9,7 +10,9 @@ import ViewMore from "./ViewMore";
 const Approve = () => {
   const localIp = config.localIp;
   const [registrationData, setRegistrationData] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState();
   const { position, department } = getLecturerData();
+  const { universityEmail } = getLoginData();
   const [isViewMoreOpen, setIsViewMoreOpen] = useState(false);
   const [selectedRegistrationNumber, setSelectedRegistrationNumber] =
     useState("");
@@ -25,7 +28,7 @@ const Approve = () => {
     const fetchRegistrationData = async () => {
       try {
         const department = getLecturerData().department;
-  
+
         const response = await axios.get(
           `http://${localIp}:8085/api/api/lecturerData/list_data_for_approve`,
           {
@@ -34,29 +37,28 @@ const Approve = () => {
             },
           }
         );
-  
-        console.log(response.data.comment)
+
+        console.log(response.data.comment);
         // Filter out the rows with comments
         const filteredData = response.data.filter((row) => !row.comment);
-  
+
         const dataWithIds = filteredData.map((row, index) => ({
           id: index + 1,
           ...row,
         }));
-  
+
         setRegistrationData(dataWithIds);
       } catch (error) {
         console.error("Error fetching registration data:", error);
       }
     };
-  
+
     fetchRegistrationData();
   }, [isViewMoreOpen, localIp]);
-  
-  
 
-  const handleOpenViewMore = (registrationNumber) => {
+  const handleOpenViewMore = (registrationNumber, semester) => {
     setSelectedRegistrationNumber(registrationNumber);
+    setSelectedSemester(semester); // This line sets the selected semester
     setIsViewMoreOpen(true);
   };
 
@@ -73,20 +75,23 @@ const Approve = () => {
     { field: "student_index_number", headerName: "Index Number", width: 200 },
     { field: "semester", headerName: "Semester", width: 200 },
     {
-        field: "Actions",
-        headerName: "",
-        width: 120,
-        renderCell: (params) => (
-          <Button
-            variant="contained"
-            onClick={() => handleOpenViewMore(params.row.student_registration_number)}
-            // Change params.row.registerNumber to params.row.student_registration_number
-          >
-            View More
-          </Button>
-        ),
-      },
-      
+      field: "Actions",
+      headerName: "",
+      width: 120,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          onClick={() =>
+            handleOpenViewMore(
+              params.row.student_registration_number,
+              params.row.semester
+            )
+          }
+        >
+          View More
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -133,6 +138,9 @@ const Approve = () => {
       <Dialog
         open={isViewMoreOpen}
         onClose={handleCloseViewMore}
+        BackdropProps={{
+          sx: { backdropFilter: "blur(2px)" },
+        }}
         PaperProps={{
           style: {
             borderRadius: "15px",
@@ -142,6 +150,8 @@ const Approve = () => {
       >
         <ViewMore
           registrationNumber={selectedRegistrationNumber}
+          semester={selectedSemester} // Passes the selected semester to ViewMore
+          lecUniEmail={universityEmail}
           onClose={handleCloseViewMore}
         />
       </Dialog>
