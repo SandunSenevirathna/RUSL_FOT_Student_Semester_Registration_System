@@ -1,10 +1,24 @@
-import { Box, Button, Divider, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Typography,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+} from "@mui/material";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import config from "../../ipAddress";
+import moment from "moment";
 
-const ViewMore = ({ registrationNumber, onClose }) => {
+const ViewMore = ({ registrationNumber,lecUniEmail, semester, onClose }) => {
   const localIp = config.localIp;
+  const date = moment().format("YYYY-MM-DD");
+
 
   const [studentData, setStudentData] = useState(null);
   const [subjectData, setSubjectData] = useState([]);
@@ -55,10 +69,8 @@ const ViewMore = ({ registrationNumber, onClose }) => {
 
   const handleConfirmApprove = async () => {
     try {
-      await axios.post(
-        `http://${localIp}:8085/api/approve/view_more/approveRegistration`,
-        { registrationNumber }
-      );
+      await axios.post(`http://${localIp}:8085/api/approve/view_more/approveRegistration`, { registrationNumber });
+      logApproval("YES", "");
       onClose();
     } catch (error) {
       console.error("Error approving registration:", error);
@@ -67,13 +79,10 @@ const ViewMore = ({ registrationNumber, onClose }) => {
 
   const handleConfirmReject = async () => {
     try {
-      if (comment) { // Check if comment exists
-        await axios.post(
-          `http://${localIp}:8085/api/approve/view_more/rejectRegistration`,
-          { registrationNumber, comment }
-        );
+      if (comment) {
+        await axios.post(`http://${localIp}:8085/api/approve/view_more/rejectRegistration`, { registrationNumber, comment, semester });
+        logApproval("Rejected", comment);
       } else {
-        // Handle case where there is no comment
         console.log("No comment provided");
       }
       onClose();
@@ -81,7 +90,14 @@ const ViewMore = ({ registrationNumber, onClose }) => {
       console.error("Error rejecting registration:", error);
     }
   };
-  
+
+  const logApproval = async (approvalType, comment) => {
+    try {
+      await axios.post(`http://${localIp}:8085/api/approve/view_more/logApproval`, { registrationNumber,semester, lecUniEmail, approvalType, comment, date });
+    } catch (error) {
+      console.error("Error logging approval:", error);
+    }
+  };
 
   return (
     <Box m={3}>
@@ -133,7 +149,7 @@ const ViewMore = ({ registrationNumber, onClose }) => {
       <Box display="flex" flexDirection="column" alignItems="center">
         <Box mb={2}>
           <Typography sx={{ fontSize: "18px", fontWeight: "500" }} mb={1}>
-            Subject Data
+            Subject Data in {semester}
           </Typography>
           {subjectData.length > 0 ? (
             <ul>
@@ -156,18 +172,20 @@ const ViewMore = ({ registrationNumber, onClose }) => {
           >
             Approve
           </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleReject}
-          >
+          <Button variant="contained" color="error" onClick={handleReject}>
             Reject
           </Button>
         </Box>
       </Box>
 
       {/* Confirmation Dialog for Approve */}
-      <Dialog open={confirmApproveOpen} onClose={() => setConfirmApproveOpen(false)}>
+      <Dialog
+        open={confirmApproveOpen}
+        onClose={() => setConfirmApproveOpen(false)}
+        BackdropProps={{
+          sx: { backdropFilter: "blur(2px)" },
+        }}
+      >
         <DialogTitle>Confirm Approve</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -182,7 +200,13 @@ const ViewMore = ({ registrationNumber, onClose }) => {
       </Dialog>
 
       {/* Confirmation Dialog for Reject */}
-      <Dialog open={confirmRejectOpen} onClose={() => setConfirmRejectOpen(false)}>
+      <Dialog
+        open={confirmRejectOpen}
+        onClose={() => setConfirmRejectOpen(false)}
+        BackdropProps={{
+          sx: { backdropFilter: "blur(2px)" },
+        }}
+      >
         <DialogTitle>Confirm Reject</DialogTitle>
         <DialogContent>
           <DialogContentText>

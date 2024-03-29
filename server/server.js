@@ -224,6 +224,65 @@ server.get("/api/subject/selectFromSemester/:semester", async (req, res) => {
   }
 });
 
+server.get("/api/subject/selectFromSemesterAndDepartment/:semester&:department", async (req, res) => {
+  const { semester, department } = req.params;
+
+  console.log(semester, department);
+
+  try {
+    // Fetch subjects for the specified semester and department from the database
+    const query = "SELECT subject_code, subject_name, credit " +
+    "FROM subject " +
+    "WHERE semester = ? " +
+    "AND (compulsory_department LIKE ? OR optional_department LIKE ?)";
+
+    db.query(query, [semester, `%${department}%`, `%${department}%`], (err, result) => {
+      if (err) {
+        console.error("Error fetching subjects for semester and department:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      console.log(semester, department);
+
+      console.log("Subjects fetched successfully (select from semester & department)");
+      console.log(result);
+      res.status(200).json(result);
+    });
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+server.get("/api/students/fetchByRegistrationAndSubject", async (req, res) => {
+  const { registrationNumber, subject_code, semester } = req.query;
+  console.log(registrationNumber, subject_code, semester);
+
+  try {
+    // Fetch students based on registration number, subject name, and semester
+    const query = `
+      SELECT s.student_registration_number, s.student_index_number, s.student_name
+      FROM student s
+      INNER JOIN registered_semester_data rsd ON s.student_registration_number = rsd.student_registration_number
+      WHERE rsd.student_registration_number LIKE ? AND rsd.subject_code = ? AND rsd.semester = ?
+    `;
+
+    db.query(query, [`%${registrationNumber}%`, subject_code, semester], (err, result) => {
+      if (err) {
+        console.error("Error fetching student data:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      console.log("Student data fetched successfully");
+      console.log(result);
+      res.status(200).json(result);
+    });
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 // Add this route to handle subject insertion or update
 server.post("/api/subject/upsert", (req, res) => {
   const {
@@ -492,6 +551,31 @@ server.get("/api/student/semester_registration/all_subjects", (req, res) => {
     res.status(200).json(result);
   });
 });
+
+server.get("/api/student/semester_registration/check_registered_data", (req, res) => {
+  const { student_registration_number, semester } = req.query;
+
+  console.log(req.query);
+  
+  const query = `
+    SELECT COUNT(*) AS count
+    FROM registered_semester_data
+    WHERE student_registration_number = ? AND semester = ? AND approve = 1
+  `;
+
+  db.query(query, [student_registration_number, semester], (err, result) => {
+    if (err) {
+      console.error("Error checking registered semester data:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    const count = result[0].count;
+    const hasData = count > 0;
+
+    res.status(200).json({ hasData });
+  });
+});
+
 
 //------------------- Lecturer  -----------------------------------
 
@@ -1210,7 +1294,7 @@ server.get(
   (req, res) => {
     const { student_registration_number } = req.query;
     const sql =
-      "SELECT `subject_code`,`subject_name`, `semester`, `date`, `approve` FROM `registered_semester_data` WHERE `student_registration_number` = ?";
+      "SELECT `subject_code`,`subject_name`, `semester`, `date`, `approve`, comment FROM `registered_semester_data` WHERE `student_registration_number` = ?";
 
     db.query(sql, [student_registration_number], (err, results) => {
       if (err) {
@@ -1362,14 +1446,14 @@ server.post("/api/approve/view_more/approveRegistration", async (req, res) => {
 
 server.post("/api/approve/view_more/rejectRegistration", async (req, res) => {
   try {
-    const {  registrationNumber, comment } = req.body;
+    const {  registrationNumber, comment,semester } = req.body;
     const query = `
       UPDATE registered_semester_data
       SET approve = 0, comment= ?
-      WHERE student_registration_number = ?;
+      WHERE student_registration_number = ? AND semester= ?;
     `;
     // Assuming db is your database connection
-    db.query(query, [comment, registrationNumber], (err, result) => {
+    db.query(query, [comment, registrationNumber, semester], (err, result) => {
       if (err) {
         console.error("Error updating registration:", err);
         return res.status(500).send("Internal Server Error");
@@ -1378,6 +1462,47 @@ server.post("/api/approve/view_more/rejectRegistration", async (req, res) => {
     });
   } catch (error) {
     console.error("Error handling registration approval:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+server.post("/api/approve/view_more/logApproval", async (req, res) => {
+  try {
+    const {
+      registrationNumber,
+      semester,
+      lecUniEmail,
+      approvalType,
+      comment,
+      date
+    } = req.body;
+
+    const query = `
+      INSERT INTO approved_log (student_registration_number, semester, lecturer_email, approval_type, comment, date)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+      query,
+      [
+        registrationNumber,
+        semester,
+        lecUniEmail,
+        approvalType,
+        comment,
+        date
+      ],
+      (err, result) => {
+        if (err) {
+          console.error("Error logging approval:", err);
+          return res.status(500).send("Internal Server Error");
+        }
+        res.status(200).send("Approval logged successfully.");
+      }
+    );
+  } catch (error) {
+    console.error("Error logging approval:", error);
     res.status(500).send("Internal Server Error");
   }
 });

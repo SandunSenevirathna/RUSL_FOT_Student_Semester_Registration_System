@@ -5,11 +5,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import CastForEducationOutlinedIcon from "@mui/icons-material/CastForEducationOutlined";
 import ClassOutlinedIcon from "@mui/icons-material/ClassOutlined";
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
 import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import AddReactionRoundedIcon from "@mui/icons-material/AddReactionRounded";
+import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import { getLoginData } from "../LoginData";
 import { getStudentData, setStudentData } from "../Student/StudentData";
 import { getLecturerData, setLecturerData } from "../Lecturer/LecturerData";
@@ -42,16 +41,16 @@ const Sidebar = ({ children }) => {
       link: "/Main_Menu/Student_Subject",
       icon: ClassOutlinedIcon,
     },
-    {
-      name: "Notification",
-      link: "/Main_Menu/Student_Notification",
-      icon: NotificationsNoneOutlinedIcon,
-    },
   ];
  
   const menuItems_Lecturer = [
     //2 Lec
     { name: "Approve", link: "/Main_Menu/Lec_Approve", icon: TaskAltOutlinedIcon },
+    {
+      name: "Report",
+      link: "/Main_Menu/Lec_Subject_Register_Student_Report",
+      icon: AssessmentRoundedIcon,
+    },
     {
       name: "Profile",
       link: "/Main_Menu/Lec_Profile",
@@ -66,7 +65,7 @@ const Sidebar = ({ children }) => {
       link: "/Main_Menu/AROffice_Registration",
       icon: AddReactionRoundedIcon,
     },
-    { name: "Setting", link: "/Main_Menu/Subject", icon: SettingsRoundedIcon },
+    { name: "Semester", link: "/Main_Menu/AROffice_Semester", icon: CastForEducationOutlinedIcon },
     {
       name: "Profile",
       link: "/Main_Menu/AROffice_Profile",

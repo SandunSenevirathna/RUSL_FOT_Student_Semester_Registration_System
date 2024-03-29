@@ -1,0 +1,127 @@
+[33mcommit 8f09e6b2a2fd7d6d91a69fb94037880f545db631[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mSandun-Branch[m[33m, [m[1;31morigin/Sandun-Branch[m[33m)[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Tue Mar 5 14:33:49 2024 +0530
+
+    Create Approve.jsx
+
+[33mcommit 27ec61ad2256758d84740cf416b7fc0f7abe7d43[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Mon Mar 4 17:52:37 2024 +0530
+
+    fixed some bugs  with group members
+
+[33mcommit 3bf3018c652d4aae0744537d55cb8da4e812cc93[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Fri Mar 1 01:04:01 2024 +0530
+
+    Add Profile Part and now can insert PP image
+
+[33mcommit bfe80893e689d31351ec80aec376e6db972c2644[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Wed Feb 28 12:23:50 2024 +0530
+
+    Start to develop Student semester_registration data showing Area
+
+[33mcommit b4919abaeb7fdece6d32d410e51ba7583bac8960[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Tue Jan 30 06:55:34 2024 +0530
+
+    updated code 2024-01-30
+
+[33mcommit 51dfb072b3daa1d47c780e220b621fdeda9c4a3f[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Sat Dec 23 19:01:13 2023 +0530
+
+    make delete students part
+
+[33mcommit 50db5f4d20f7bd1d392731ecf3f21091f7fcb2df[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Wed Dec 20 22:54:26 2023 +0530
+
+    make some small part in AddStudent.jsx
+
+[33mcommit b40d06563929b78004964a0648ac28bc8c1176e4[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Tue Dec 19 13:34:06 2023 +0530
+
+    Add Subject Registration part.
+
+[33mcommit c97b6f938a2431735af9797fdd82c2172264dd80[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Fri Dec 15 07:13:40 2023 +0530
+
+    2023-12-15 update
+
+[33mcommit cd5a3ed714d888e0689e68013dbb853b49f02ddc[m
+Merge: e07f591 df24302
+Author: SandunSenevirathna <100056910+SandunSenevirathna@users.noreply.github.com>
+Date:   Sat Aug 5 04:15:01 2023 +0530
+
+    Merge pull request #4 from SandunSenevirathna/Sandun-Senevirathna
+    
+    Sandun senevirathna
+
+[33mcommit df24302d881a0ff5612085f3232792338b5da925[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Sat Aug 5 04:12:10 2023 +0530
+
+    Make Some Changes In Sidebar & WelcomePage.
+
+[33mcommit 614b1bf71a813de721876f22b649f0b70f0da160[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Thu Jul 27 19:53:20 2023 +0530
+
+    Create Sidebar.jsx and install TailwindCSS
+
+[33mcommit e07f59192a19a58a03a06b6946a76e2316b55538[m
+Merge: 4573fa8 6bec85c
+Author: SandunSenevirathna <100056910+SandunSenevirathna@users.noreply.github.com>
+Date:   Tue Jul 25 00:35:14 2023 +0530
+
+    Merge pull request #3 from SandunSenevirathna/Sandun-Senevirathna
+    
+    Change LoginMain.jsx  UI
+
+[33mcommit 6bec85cc0a1aa241f0780710ca524fa123556a91[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Tue Jul 25 00:33:57 2023 +0530
+
+    Change LoginMain.jsx  UI
+
+[33mcommit 4573fa80b08fcaeb5d1ed8715068a621a717a183[m
+Merge: bb8e71f c79ac75
+Author: SandunSenevirathna <100056910+SandunSenevirathna@users.noreply.github.com>
+Date:   Fri Jul 21 15:55:07 2023 +0530
+
+    Merge pull request #2 from SandunSenevirathna/Sandun-Senevirathna
+    
+    Add Some CSS part for RoundButton
+
+[33mcommit c79ac757ffa57b29909dab09a58ab5e203e2aad8[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Fri Jul 21 15:54:20 2023 +0530
+
+    Add Some CSS part for RoundButton
+
+[33mcommit bb8e71f53fb26f8a7b38e9e1bc3459ff08daa678[m
+Merge: aed235a 9abf77a
+Author: SandunSenevirathna <100056910+SandunSenevirathna@users.noreply.github.com>
+Date:   Fri Jul 21 11:35:47 2023 +0530
+
+    Merge pull request #1 from SandunSenevirathna/Sandun-Senevirathna
+    
+    Create Login page Front-end
+
+[33mcommit 9abf77a989f2e7cb8b9df26f78059dec56d9a86d[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Fri Jul 21 11:34:37 2023 +0530
+
+    Create Login page Front-end
+
+[33mcommit aed235abb13479eff3fd06fd70cb064c0701aee9[m
+Author: SandunSenevirathna <sandunsandatharu@gmail.com>
+Date:   Fri Jul 21 07:30:31 2023 +0530
+
+    Create client and server Folders
+    
+    Create client and server Folders and Install react

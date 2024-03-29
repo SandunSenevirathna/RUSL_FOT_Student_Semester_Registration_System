@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Divider, Tooltip, Typography } from "@mui/material";
 import axios from "axios";
 import config from "../../ipAddress";
 import { getStudentData } from "../StudentData";
-import moment from "moment";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 
 const SubjectHistory = () => {
   const localIp = config.localIp;
@@ -35,7 +35,9 @@ const SubjectHistory = () => {
   }, [localIp, student_registration_number]);
 
   // Get unique semesters
-  const uniqueSemesters = [...new Set(registeredSubjects.map(subject => subject.semester))];
+  const uniqueSemesters = [
+    ...new Set(registeredSubjects.map((subject) => subject.semester)),
+  ];
 
   return (
     <Box m={3}>
@@ -53,12 +55,32 @@ const SubjectHistory = () => {
       ) : (
         uniqueSemesters.map((semester, index) => {
           // Check if any subject in this semester is not approved
-          const notApproved = registeredSubjects.some(subject => subject.semester === semester && subject.approve === 0);
+          const semesterSubjects = registeredSubjects.filter(
+            (subject) => subject.semester === semester
+          );
+          const notApproved = semesterSubjects.some(
+            (subject) => subject.approve === 0
+          );
+          const comment =
+            semesterSubjects.find((subject) => subject.comment)?.comment || "";
 
           return (
             <Box key={index} mt={2}>
-              <Typography variant="h6" sx={{ color: notApproved ? 'red' : 'green' }}>
-                Semester {semester} - {notApproved ? 'Not Approved' : 'Approved'}
+              <Typography
+                variant="h6"
+                sx={{ color: notApproved ? "red" : "green" }}
+              >
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {!!comment && (
+                    <Tooltip title={comment}>
+                      <NotificationsNoneOutlinedIcon
+                        sx={{ marginRight: "5px" }}
+                      />
+                    </Tooltip>
+                  )}
+                  Semester {semester} -{" "}
+                  {notApproved ? "Not Approved" : "Approved"}
+                </span>
               </Typography>
               {registeredSubjects
                 .filter((subject) => subject.semester === semester)

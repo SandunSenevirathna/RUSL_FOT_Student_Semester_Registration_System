@@ -2,10 +2,12 @@ import {
   Box,
   Button,
   Dialog,
+  Divider,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
+  Typography,
 } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
@@ -155,7 +157,14 @@ const Semester = () => {
   ];
 
   return (
-    <Box>
+    <Box m={3} style={{ overflow: "hidden" }}>
+      <Box>
+        <Typography sx={{ fontSize: 30, fontWeight: 500 }}>Semester</Typography>
+        <Typography sx={{ fontSize: 20, fontWeight: 300 }}>
+          Select batch, department, and semester to begin registration
+        </Typography>
+        <Divider orientation="horizontal" flexItem sx={{ mt: 1, mb: 1 }} />
+      </Box>
       <Box display={"flex"} alignItems="center">
         <Box>
           <FormControl size="small" sx={{ width: 150 }}>
