@@ -224,6 +224,65 @@ server.get("/api/subject/selectFromSemester/:semester", async (req, res) => {
   }
 });
 
+server.get("/api/subject/selectFromSemesterAndDepartment/:semester&:department", async (req, res) => {
+  const { semester, department } = req.params;
+
+  console.log(semester, department);
+
+  try {
+    // Fetch subjects for the specified semester and department from the database
+    const query = "SELECT subject_code, subject_name, credit " +
+    "FROM subject " +
+    "WHERE semester = ? " +
+    "AND (compulsory_department LIKE ? OR optional_department LIKE ?)";
+
+    db.query(query, [semester, `%${department}%`, `%${department}%`], (err, result) => {
+      if (err) {
+        console.error("Error fetching subjects for semester and department:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      console.log(semester, department);
+
+      console.log("Subjects fetched successfully (select from semester & department)");
+      console.log(result);
+      res.status(200).json(result);
+    });
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+server.get("/api/students/fetchByRegistrationAndSubject", async (req, res) => {
+  const { registrationNumber, subject_code, semester } = req.query;
+  console.log(registrationNumber, subject_code, semester);
+
+  try {
+    // Fetch students based on registration number, subject name, and semester
+    const query = `
+      SELECT s.student_registration_number, s.student_index_number, s.student_name
+      FROM student s
+      INNER JOIN registered_semester_data rsd ON s.student_registration_number = rsd.student_registration_number
+      WHERE rsd.student_registration_number LIKE ? AND rsd.subject_code = ? AND rsd.semester = ?
+    `;
+
+    db.query(query, [`%${registrationNumber}%`, subject_code, semester], (err, result) => {
+      if (err) {
+        console.error("Error fetching student data:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      console.log("Student data fetched successfully");
+      console.log(result);
+      res.status(200).json(result);
+    });
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 // Add this route to handle subject insertion or update
 server.post("/api/subject/upsert", (req, res) => {
   const {

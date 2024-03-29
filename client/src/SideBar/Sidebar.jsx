@@ -8,6 +8,7 @@ import ClassOutlinedIcon from "@mui/icons-material/ClassOutlined";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
 import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import AddReactionRoundedIcon from "@mui/icons-material/AddReactionRounded";
+import AssessmentRoundedIcon from '@mui/icons-material/AssessmentRounded';
 import { getLoginData } from "../LoginData";
 import { getStudentData, setStudentData } from "../Student/StudentData";
 import { getLecturerData, setLecturerData } from "../Lecturer/LecturerData";
@@ -45,6 +46,11 @@ const Sidebar = ({ children }) => {
   const menuItems_Lecturer = [
     //2 Lec
     { name: "Approve", link: "/Main_Menu/Lec_Approve", icon: TaskAltOutlinedIcon },
+    {
+      name: "Report",
+      link: "/Main_Menu/Lec_Subject_Register_Student_Report",
+      icon: AssessmentRoundedIcon,
+    },
     {
       name: "Profile",
       link: "/Main_Menu/Lec_Profile",

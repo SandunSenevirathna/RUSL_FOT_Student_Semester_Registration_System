@@ -1,20 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Divider,
-  Button,
-  TextField,
-} from "@mui/material";
+import { Box, Typography, Divider, Button, TextField } from "@mui/material";
 import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateRounded";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
-import CleaningServicesRoundedIcon from '@mui/icons-material/CleaningServicesRounded';
+import CleaningServicesRoundedIcon from "@mui/icons-material/CleaningServicesRounded";
 import AvatarEditor from "react-avatar-editor";
 import { getLoginData } from "../../LoginData";
-import { sha256 } from 'js-sha256';
+import { sha256 } from "js-sha256";
 import { useNavigate } from "react-router-dom";
-
-
 
 import axios from "axios";
 import config from "../../ipAddress";
@@ -28,13 +20,11 @@ const CommonProfile = () => {
   const [address, setAddress] = useState("");
   const [tpNumber, setTpNumber] = useState("");
   const [password, setPassword] = useState("");
-  
 
   const [profilePicture, setProfilePicture] = useState(null);
   const editorRef = useRef();
 
   const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
-
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -44,8 +34,14 @@ const CommonProfile = () => {
         );
 
         if (response.status === 200) {
-          const { profileName, address, tpNumber, studentName, profilePhoto, lecturerName } =
-            response.data;
+          const {
+            profileName,
+            address,
+            tpNumber,
+            studentName,
+            profilePhoto,
+            lecturerName,
+          } = response.data;
 
           // Set the profileName, address, tpNumber, and profilePicture based on the fetched data
           setProfileName(profileName);
@@ -71,8 +67,6 @@ const CommonProfile = () => {
     fetchProfileData();
   }, [localIp, universityEmail, position]); // Include position as a dependency
 
-
-  
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -97,7 +91,7 @@ const CommonProfile = () => {
             cropped_image: croppedImage,
           }
         );
-  
+
         if (response.status === 200) {
           // Handle successful response
           console.log("Profile photo saved successfully.");
@@ -111,7 +105,6 @@ const CommonProfile = () => {
       }
     }
   };
-  
 
   const handlePasswordChange = (event) => {
     setPassword(event.target.value);
@@ -121,52 +114,58 @@ const CommonProfile = () => {
     const encryptedPassword = password ? sha256(password) : null;
 
     // Validation checks
-    if (!profileName || !address || !tpNumber || tpNumber.length !== 10 || !position) {
-        console.error("Profile data is incomplete or invalid.");
-        return; // Exit the function if data is incomplete or invalid
+    if (
+      !profileName ||
+      !address ||
+      !tpNumber ||
+      tpNumber.length !== 10 ||
+      !position
+    ) {
+      console.error("Profile data is incomplete or invalid.");
+      return; // Exit the function if data is incomplete or invalid
     }
-  
+
     // Validate profile name
-    const profileNamePattern = /^[A-Za-z.]+$/;
+    const profileNamePattern = /^[A-Za-z]+\s[A-Za-z]+$/;
     if (!profileNamePattern.test(profileName)) {
-      alert("Profile name must consist of uppercase letters from A to Z.");
+      alert(
+        "Profile name must consist of a first name followed by a space and then a last name."
+      );
       return;
     }
 
     try {
-        const updatedData = {
-            university_email: universityEmail,
-            profile_name: profileName,
-            address: address,
-            tp_number: tpNumber,
-            password: encryptedPassword ? encryptedPassword : null,
-            position: position // Assuming position is obtained from somewhere else
-        };
-  
-        const response = await axios.post(
-            `http://${localIp}:8085/api/profile/update_profile_data`,
-            updatedData
-        );
-  
-        if (response.status === 200) {
-            alert("Profile data updated successfully. Please Login again");
-            setPassword("");
-            navigate("/");
-        } else {
-            console.error("Failed to update profile data.");
-        }
-    } catch (error) {
-        console.error("Error while updating profile data:", error);
-    }
-};
+      const updatedData = {
+        university_email: universityEmail,
+        profile_name: profileName,
+        address: address,
+        tp_number: tpNumber,
+        password: encryptedPassword ? encryptedPassword : null,
+        position: position, // Assuming position is obtained from somewhere else
+      };
 
-  
+      const response = await axios.post(
+        `http://${localIp}:8085/api/profile/update_profile_data`,
+        updatedData
+      );
+
+      if (response.status === 200) {
+        alert("Profile data updated successfully. Please Login again");
+        setPassword("");
+        navigate("/");
+      } else {
+        console.error("Failed to update profile data.");
+      }
+    } catch (error) {
+      console.error("Error while updating profile data:", error);
+    }
+  };
+
   const handleClaer = () => {
     setProfileName("");
     setPassword("");
     setAddress("");
     setTpNumber("");
-    
   };
 
   return (

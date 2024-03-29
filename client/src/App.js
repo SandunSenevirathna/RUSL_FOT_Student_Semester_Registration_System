@@ -11,6 +11,7 @@ import Student_Semester from './Student/Semester/Student_Semester';
 import Lec_Profile from './Lecturer/Profile/Profile';
 import Lec_Approve from './Lecturer/Approve/Approve';
 import AROffice_Semester from './AR Office/Registration/Semester/Semester';
+import Lec_Subject_Register_Student_Report from './Components/StudentsReport/Subject_Register_Student_Report';
 
 
 const App = () => {
@@ -36,6 +37,8 @@ const App = () => {
 
               <Route path="Lec_Profile" element={<Lec_Profile />} />
               <Route path="Lec_Approve" element={<Lec_Approve />} />
+              <Route path="Lec_Subject_Register_Student_Report" element={<Lec_Subject_Register_Student_Report />} />
+
 
 
 

@@ -81,13 +81,14 @@ const AddStudent = ({ onClose, initialStudentData, isNewStudent }) => {
 
   const handleSubjectUpsert = async () => {
     try {
-      const registrationNumberPattern = /^[A-Za-z]+\/\d{4}\/\d{3}$/; // Define the pattern for the registration number
+      const registrationNumberPattern = /^[A-Za-z]+\/\d{4}\/\d{4}\/\d{3}$/; // Define the pattern for the registration number
       if (!registrationNumberPattern.test(registrationNumber)) {
         alert(
-          "Registration Number must start with alphabets and be in the format 'XXXX/XXXX/XXX'."
+          "Registration Number must start with alphabets and be in the format 'XXXX/YYYY/YYYY/ZZZ'."
         );
         return;
       }
+      
      
       if (!validateEmail(email)) {
         alert("Invalid email format. Please enter a valid university email.");
