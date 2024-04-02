@@ -24,25 +24,26 @@ const Sidebar = ({ children }) => {
   const navigate = useNavigate(); // Add the useNavigate hook to access the navigation function
   const { profileName, universityEmail, position, profile_photo } = getLoginData();
 
-  const menuItems_Student = [
-    //1 student
+  const menuItems_AR_Office = [
+    //3 AR
+    {
+      name: "Registration",
+      link: "/Main_Menu/AROffice_Registration",
+      icon: AddReactionRoundedIcon,
+    },
+    { name: "Semester", link: "/Main_Menu/AROffice_Semester", icon: CastForEducationOutlinedIcon },
+    {
+      name: "Report",
+      link: "/Main_Menu/Lec_Subject_Register_Student_Report",
+      icon: AssessmentRoundedIcon,
+    },
     {
       name: "Profile",
-      link: "/Main_Menu/Student_Profile",
+      link: "/Main_Menu/AROffice_Profile",
       icon: AccountCircleOutlinedIcon,
     },
-    {
-      name: "Semester",
-      link: "/Main_Menu/Student_Semester",
-      icon: CastForEducationOutlinedIcon,
-    },
-    {
-      name: "Subject",
-      link: "/Main_Menu/Student_Subject",
-      icon: ClassOutlinedIcon,
-    },
   ];
- 
+  
   const menuItems_Lecturer = [
     //2 Lec
     { name: "Approve", link: "/Main_Menu/Lec_Approve", icon: TaskAltOutlinedIcon },
@@ -58,20 +59,26 @@ const Sidebar = ({ children }) => {
     },
   ];
 
-  const menuItems_AR_Office = [
-    //3 AR
+  
+  const menuItems_Student = [
+    //1 student
     {
-      name: "Registration",
-      link: "/Main_Menu/AROffice_Registration",
-      icon: AddReactionRoundedIcon,
+      name: "Subject",
+      link: "/Main_Menu/Student_Subject",
+      icon: ClassOutlinedIcon,
     },
-    { name: "Semester", link: "/Main_Menu/AROffice_Semester", icon: CastForEducationOutlinedIcon },
     {
-      name: "Profile",
-      link: "/Main_Menu/AROffice_Profile",
+      name: "Semester",
+      link: "/Main_Menu/Student_Semester",
+      icon: CastForEducationOutlinedIcon,
+    },
+    {
+    name: "Profile",
+      link: "/Main_Menu/Student_Profile",
       icon: AccountCircleOutlinedIcon,
     },
-  ];
+];
+ 
 
   const renderMenuItems = () => {
     let menuItems;

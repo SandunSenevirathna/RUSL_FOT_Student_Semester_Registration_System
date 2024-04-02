@@ -98,6 +98,8 @@ const Subject_Register_Student_Report = () => {
 
       // Update state with the fetched student data
       setStudents(dataWithIds);
+      setPrintReport(false);
+
     } catch (error) {
       console.error("Error fetching student data:", error);
     }
