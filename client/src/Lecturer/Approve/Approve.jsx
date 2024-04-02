@@ -54,6 +54,13 @@ const Approve = () => {
     };
 
     fetchRegistrationData();
+
+     // Refresh data every 5 seconds
+  const intervalId = setInterval(fetchRegistrationData, 5000);
+
+  // Clear interval on component unmount or when dependencies change
+  return () => clearInterval(intervalId);
+  
   }, [isViewMoreOpen, localIp]);
 
   const handleOpenViewMore = (registrationNumber, semester) => {

@@ -12,6 +12,7 @@ import {
 import axios from "axios";
 import config from "../../ipAddress";
 import { DataGrid } from "@mui/x-data-grid";
+import AttendanceReport from "./AttendanceReport";
 
 const Subject_Register_Student_Report = () => {
   const localIp = config.localIp;
@@ -26,6 +27,8 @@ const Subject_Register_Student_Report = () => {
   const [isFindDataButtonDisabled, setIsFindDataButtonDisabled] =
     useState(true);
   const [students, setStudents] = useState([]);
+  const [printReport, setPrintReport] = useState(false);
+  const [reportDataObject, setReportDataObject] = useState(null);
 
   useEffect(() => {
     const fetchBatches = async () => {
@@ -95,8 +98,34 @@ const Subject_Register_Student_Report = () => {
 
       // Update state with the fetched student data
       setStudents(dataWithIds);
+      setPrintReport(false);
+
     } catch (error) {
       console.error("Error fetching student data:", error);
+    }
+  };
+
+  const handlePrintButton = async () => {
+    try {
+      // Create the reportDataObject with the selected subject name, subject code, department, and batch
+      const reportDataObject = {
+        subject_name:
+          subjects.find((subject) => subject.subject_code === selectedSubject)
+            ?.subject_name || "",
+        subject_code: selectedSubject,
+        department: selectedDepartment,
+        batch: selectedBatch,
+        students: students,
+      };
+
+      ///console.log("Report Data:", reportDataObject);
+      // Set reportDataObject state
+      setReportDataObject(reportDataObject);
+
+      // Set printReport state to true to render the AttendanceReport component
+      setPrintReport(true);
+    } catch (error) {
+      console.error("Error while preparing report data:", error);
     }
   };
 
@@ -111,7 +140,7 @@ const Subject_Register_Student_Report = () => {
   ];
 
   return (
-    <Box m={3} style={{ overflow: "hidden" }}>
+    <Box m={3}>
       <Box>
         <Typography sx={{ fontSize: 30, fontWeight: 500 }}>Reports</Typography>
         <Typography sx={{ fontSize: 20, fontWeight: 300 }}>
@@ -196,7 +225,7 @@ const Subject_Register_Student_Report = () => {
 
         {/* Subject Select */}
         <Box sx={{ marginLeft: 3 }}>
-          <FormControl size="small" sx={{ width: 300 }}>
+          <FormControl size="small" sx={{ width: 250 }}>
             <InputLabel id="subject-label">Subject</InputLabel>
             <Select
               labelId="subject-label"
@@ -231,7 +260,18 @@ const Subject_Register_Student_Report = () => {
             disabled={isFindDataButtonDisabled}
             onClick={handleFindDataButton}
           >
-            Find Data
+            Find
+          </Button>
+        </Box>
+
+        <Box sx={{ marginLeft: 2 }}>
+          <Button
+            variant="contained"
+            color="warning"
+            size="large"
+            onClick={handlePrintButton}
+          >
+            Print
           </Button>
         </Box>
       </Box>
@@ -240,7 +280,7 @@ const Subject_Register_Student_Report = () => {
       <Box>
         <div className="mt-2 items-center justify-center h-screen">
           <Box
-            style={{ height: "80vh", width: "auto" }}
+            style={{ height: "70vh", width: "auto" }}
             sx={{
               "& .MuiDataGrid-columnHeaders": {
                 backgroundColor: "#333333",
@@ -258,17 +298,12 @@ const Subject_Register_Student_Report = () => {
           </Box>
         </div>
       </Box>
-      <Box sx={{}}>
-          <Button
-            variant="contained"
-            color="warning"
-            size="large"
-            disabled={isFindDataButtonDisabled}
-            onClick={handleFindDataButton}
-          >
-            Print
-          </Button>
-        </Box>
+      {printReport && (
+        <div style={{ display: "none" }}>
+          {console.log("Report Data:", reportDataObject)}
+          <AttendanceReport reportData={reportDataObject} shouldPrint={true} />
+        </div>
+      )}
     </Box>
   );
 };
