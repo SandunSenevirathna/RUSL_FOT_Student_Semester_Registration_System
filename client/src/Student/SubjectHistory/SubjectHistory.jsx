@@ -11,6 +11,8 @@ const SubjectHistory = () => {
 
   const [registeredSubjects, setRegisteredSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sum, setSum] = useState(0);
+  
 
   useEffect(() => {
     const fetchRegisteredSubjects = async () => {
@@ -23,8 +25,10 @@ const SubjectHistory = () => {
             },
           }
         );
-        setRegisteredSubjects(response.data);
+        const { results, sum } = response.data; // Extracting results and sum from the response
+        setRegisteredSubjects(results);
         setLoading(false);
+        setSum(sum);
       } catch (error) {
         console.error("Error fetching subjects:", error);
         setLoading(false);
@@ -46,7 +50,7 @@ const SubjectHistory = () => {
           Registered Subjects on Previous Semesters
         </Typography>
         <Typography sx={{ fontSize: 20, fontWeight: 300 }}>
-          You can see which subjects you have registered in previous semesters
+          You can see which subjects you have registered in previous semesters <span style={{ fontWeight: 400, color: "green" }}>Total Cridet : {sum}</span>
         </Typography>
         <Divider orientation="horizontal" flexItem sx={{ mt: 1, mb: 1 }} />
       </Box>
