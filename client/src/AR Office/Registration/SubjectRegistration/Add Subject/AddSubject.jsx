@@ -112,7 +112,7 @@ const AddSubject = ({ onClose, initialSubjectData, isNewSubject }) => {
         return;
       }
       // Validate subject code
-      const subjectCodePattern = /^[A-Z0-9]+$/;
+      const subjectCodePattern = /^[A-Z]{3}\s\d{4}$/;
       if (!subjectCodePattern.test(subjectCode)) {
         alert(
           "Subject code must contain only uppercase letters (A-Z) and integers."
