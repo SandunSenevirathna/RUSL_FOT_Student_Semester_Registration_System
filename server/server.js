@@ -1319,29 +1319,30 @@ server.get(
         console.error("Error fetching subjects:", err);
         res.status(500).json({ error: "Internal server error" });
       } else {
-        const subjectCodes = results.map((result) => result.subject_code);
+        const subjectCodes = results.map(result => result.subject_code);
         let numberArray = []; // Initialize numberArray as an empty array
         let sum = 0;
-
-        subjectCodes.forEach((subjectCode) => {
+      
+        subjectCodes.forEach(subjectCode => {
           const numbers = subjectCode.match(/\d+/g); // Extract numbers using a regular expression
           if (numbers) {
             numberArray.push(...numbers); // Push extracted numbers into numberArray
           }
         });
-
+      
         for (let i = 0; i < numberArray.length; i++) {
-          sum += parseInt(numberArray[i][1]);
+          sum += parseInt(numberArray[i][1]); // Add the second character of each number to the sum
         }
-
+      
         // Include the sum in the response JSON object
         const responseObject = {
           results: results,
-          sum: sum,
+          sum: sum
         };
-
+      
         res.json(responseObject);
       }
+      
     });
   }
 );
