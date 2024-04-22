@@ -106,6 +106,8 @@ const CommonProfile = () => {
     }
   };
 
+  
+  
   const handlePasswordChange = (event) => {
     setPassword(event.target.value);
   };
@@ -125,6 +127,12 @@ const CommonProfile = () => {
       return; // Exit the function if data is incomplete or invalid
     }
 
+    // Validate password length
+    if (password.length < 10 || password.length > 100) {
+      alert("Password must be between 10 and 100 characters.");
+      return;
+    }
+    
     // Validate profile name
     const profileNamePattern = /^[A-Za-z]+\s[A-Za-z]+$/;
     if (!profileNamePattern.test(profileName)) {
